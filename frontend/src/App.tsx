@@ -1,5 +1,5 @@
 import { socket } from "../client/client";
-import Timer from "../components/Timer";
+import Timer from "./components/Timer";
 
 function App() {
   return (
