@@ -1,4 +1,4 @@
-import { socket } from "../client/client";
+import { socket } from "@/client/client";
 import { useState, useEffect } from "react";
 
 function Timer() {
