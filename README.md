@@ -19,7 +19,7 @@ I have set up the fundamental client-server interactions, and the backend+fronte
 - React Router now handles lobby-to-room state transfers and other page routing.
 - Digital Pomodoro timer is fully state-synced and even includes a nice progress-bar!
 
-## History
+### History
 
 <details>
 <summary><b>Test App</b></summary>
