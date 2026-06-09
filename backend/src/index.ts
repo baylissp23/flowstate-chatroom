@@ -5,13 +5,13 @@ const io = new Server({ cors: {
     methods: ["GET", "POST"]
 } });
 
-let roomTimers : Map<string, number>= new Map();
+let roomTimers = new Map();
 
 setInterval(() => {
   roomTimers.forEach((timer, roomCode) => {
-    if (timer !== 0) {
-      roomTimers.set(roomCode, timer - 1);
-      io.to(roomCode).emit("timer-tick", timer - 1);
+    if (timer.current !== 0) {
+      timer.current -= 1;
+      io.to(roomCode).emit("timer-tick", timer);
     } else {
       io.to(roomCode).emit("room-closed", "Time is up!");
       roomTimers.delete(roomCode);
@@ -31,7 +31,7 @@ io.on("connection", (socket) => {
     const roomCode = joinInfo.roomCode;
 
     if (!roomTimers.has(roomCode)) {
-      roomTimers.set(roomCode, 1500);
+      roomTimers.set(roomCode, { current: 1500, max: 1500 });
     }
     socket.join(roomCode);
     io.to(socket.id).emit("initial-timer", roomTimers.get(roomCode)); 
