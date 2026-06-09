@@ -1,11 +1,13 @@
 import Container from "react-bootstrap/Container";
 import Form from "react-bootstrap/Form";
 import Button from "react-bootstrap/Button";
+import { useNavigate } from "react-router-dom";
 import { useState } from "react";
-import { socket } from "@/client/client";
 
 function Join() {
   const [displayName, setDisplayName] = useState("");
+  const [roomCode, setRoomCode] = useState("");
+  const navigate = useNavigate();
 
   return (
     <>
@@ -15,14 +17,7 @@ function Join() {
         <Form
           onSubmit={(e) => {
             e.preventDefault();
-            const formData = new FormData(e.currentTarget);
-            const displayName = formData.get("displayName") as string;
-            const roomCode = formData.get("roomCode") as string;
-
-            socket.emit("join-room", {
-              displayName: displayName,
-              roomCode: roomCode,
-            });
+            navigate(`/join/${roomCode}/${displayName}`);
           }}
         >
           <Form.Group className="mb-3" controlId="displayNameEnter">
@@ -42,6 +37,9 @@ function Join() {
               type="text"
               placeholder="Enter room code..."
               name="roomCode"
+              onChange={(e) => {
+                setRoomCode(e.target.value);
+              }}
             />
           </Form.Group>
           <Button variant="primary" type="submit" disabled={displayName === ""}>
