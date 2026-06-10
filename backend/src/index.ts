@@ -1,11 +1,12 @@
 import { Server } from "socket.io";
+import type { JoinRoomPayload, RoomState } from "../../shared/types.js";
 
 const io = new Server({ cors: {
     origin: "http://localhost:5173",
     methods: ["GET", "POST"]
 } });
 
-let roomState = new Map();
+let roomState : Map<string, RoomState> = new Map();
 
 setInterval(() => {
   roomState.forEach((timer, roomCode) => {
@@ -26,7 +27,7 @@ io.on("connection", (socket) => {
     console.log("Socket pinged me!");
   })
 
-  socket.on("join-room", (joinInfo) => {
+  socket.on("join-room", (joinInfo : JoinRoomPayload) => {
     const displayName = joinInfo.displayName;
     const roomCode = joinInfo.roomCode;
 
@@ -38,6 +39,9 @@ io.on("connection", (socket) => {
       roomState.set(roomCode, { current: 1500, max: 1500, roomMembers: [displayName], assignedDisplayName: displayName });
     } else {
       const roomData = roomState.get(roomCode);
+      if (!roomData) {
+        return;
+      }
       const rm = roomData.roomMembers;
 
       if (roomData.roomMembers.includes(displayName)) {
@@ -64,6 +68,7 @@ io.on("connection", (socket) => {
           assignedDisplayName: displayName
         });
       }
+      io.to(roomCode).emit("new-join", roomState.get(roomCode)!.roomMembers);
     }
     socket.join(roomCode);
     io.to(socket.id).emit("initial-info", roomState.get(roomCode)); 
