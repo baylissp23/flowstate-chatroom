@@ -30,8 +30,12 @@ io.on("connection", (socket) => {
     const displayName = joinInfo.displayName;
     const roomCode = joinInfo.roomCode;
 
+    if (socket.rooms.has(roomCode)) {
+      return;
+    }
+
     if (!roomState.has(roomCode)) {
-      roomState.set(roomCode, { current: 1500, max: 1500, roomMembers: [displayName] });
+      roomState.set(roomCode, { current: 1500, max: 1500, roomMembers: [displayName], assignedDisplayName: displayName });
     } else {
       const roomData = roomState.get(roomCode);
       const rm = roomData.roomMembers;
@@ -48,14 +52,16 @@ io.on("connection", (socket) => {
         roomState.set(roomCode, { 
           current: roomData.current, 
           max: roomData.max, 
-          roomMembers: rm
+          roomMembers: rm,
+          assignedDisplayName: candidateName
         });
       } else {
         rm.push(displayName);
-          roomState.set(roomCode, { 
+        roomState.set(roomCode, { 
           current: roomData.current, 
           max: roomData.max, 
-          roomMembers: rm 
+          roomMembers: rm, 
+          assignedDisplayName: displayName
         });
       }
     }

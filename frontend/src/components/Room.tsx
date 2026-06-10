@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useParams } from "react-router-dom";
 import { socket } from "@/client/client";
 import Timer from "@/components/Timer";
@@ -7,28 +7,30 @@ import Container from "react-bootstrap/Container";
 function Room() {
   const params = useParams();
   const roomCode = params.roomCode;
-  const displayName = params.displayName;
+  const ogDisplayName = useRef(params.displayName);
+  const [displayName, setDisplayName] = useState("");
 
   const [timer, setTimer] = useState(0);
   const [maxTimer, setMaxTimer] = useState(1);
 
   useEffect(() => {
-    socket.emit("join-room", { displayName, roomCode });
+    socket.emit("join-room", { displayName: ogDisplayName.current, roomCode });
 
-    socket.on("initial-info", (timerData) => {
-      setTimer(timerData.current);
-      setMaxTimer(timerData.max);
+    socket.on("initial-info", (roomStateData) => {
+      setTimer(roomStateData.current);
+      setMaxTimer(roomStateData.max);
+      setDisplayName(roomStateData.assignedDisplayName);
     });
 
-    socket.on("timer-tick", (timerData) => {
-      setTimer(timerData.current);
+    socket.on("timer-tick", (roomStateData) => {
+      setTimer(roomStateData.current);
     });
 
     return () => {
       socket.off("initial-info");
       socket.off("timer-tick");
     };
-  }, [roomCode, displayName]);
+  }, [roomCode]);
 
   return (
     <>
