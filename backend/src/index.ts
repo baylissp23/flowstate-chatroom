@@ -5,16 +5,16 @@ const io = new Server({ cors: {
     methods: ["GET", "POST"]
 } });
 
-let roomTimers = new Map();
+let roomState = new Map();
 
 setInterval(() => {
-  roomTimers.forEach((timer, roomCode) => {
+  roomState.forEach((timer, roomCode) => {
     if (timer.current !== 0) {
       timer.current -= 1;
       io.to(roomCode).emit("timer-tick", timer);
     } else {
       io.to(roomCode).emit("room-closed", "Time is up!");
-      roomTimers.delete(roomCode);
+      roomState.delete(roomCode);
     }
   });
 }, 1000);
@@ -30,11 +30,37 @@ io.on("connection", (socket) => {
     const displayName = joinInfo.displayName;
     const roomCode = joinInfo.roomCode;
 
-    if (!roomTimers.has(roomCode)) {
-      roomTimers.set(roomCode, { current: 1500, max: 1500 });
+    if (!roomState.has(roomCode)) {
+      roomState.set(roomCode, { current: 1500, max: 1500, roomMembers: [displayName] });
+    } else {
+      const roomData = roomState.get(roomCode);
+      const rm = roomData.roomMembers;
+
+      if (roomData.roomMembers.includes(displayName)) {
+        let count = 2
+        let suffix = ` (${count})`;
+        while (roomData.roomMembers.includes(displayName + suffix)) {
+          count += 1;
+          suffix = ` (${count})`;
+        }
+        const candidateName = displayName + suffix;
+        rm.push(candidateName)
+        roomState.set(roomCode, { 
+          current: roomData.current, 
+          max: roomData.max, 
+          roomMembers: rm
+        });
+      } else {
+        rm.push(displayName);
+          roomState.set(roomCode, { 
+          current: roomData.current, 
+          max: roomData.max, 
+          roomMembers: rm 
+        });
+      }
     }
     socket.join(roomCode);
-    io.to(socket.id).emit("initial-timer", roomTimers.get(roomCode)); 
+    io.to(socket.id).emit("initial-info", roomState.get(roomCode)); 
   })
 
 });

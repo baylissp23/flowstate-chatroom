@@ -15,7 +15,7 @@ function Room() {
   useEffect(() => {
     socket.emit("join-room", { displayName, roomCode });
 
-    socket.on("initial-timer", (timerData) => {
+    socket.on("initial-info", (timerData) => {
       setTimer(timerData.current);
       setMaxTimer(timerData.max);
     });
@@ -25,7 +25,7 @@ function Room() {
     });
 
     return () => {
-      socket.off("initial-timer");
+      socket.off("initial-info");
       socket.off("timer-tick");
     };
   }, [roomCode, displayName]);
