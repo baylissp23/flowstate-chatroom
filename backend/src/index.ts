@@ -74,6 +74,31 @@ io.on("connection", (socket) => {
     io.to(socket.id).emit("initial-info", roomState.get(roomCode)); 
   })
 
+  socket.on("leave-room", (leaveInfo : JoinRoomPayload) => {
+    socket.leave(leaveInfo.roomCode);
+
+    const roomStateCurrent = roomState.get(leaveInfo.roomCode)!.current;
+    const roomStateMax = roomState.get(leaveInfo.roomCode)!.max;
+    const roomStateAssignedName = roomState.get(leaveInfo.roomCode)!.assignedDisplayName;
+
+    const newRoomMembers = roomState.get(leaveInfo.roomCode)!.roomMembers;
+    if (!newRoomMembers) {
+      return;
+    }
+
+    const idxOfName = newRoomMembers.indexOf(leaveInfo.displayName);
+    newRoomMembers.splice(idxOfName, 1);
+
+    roomState.set(leaveInfo.roomCode, {
+      current: roomStateCurrent,
+      max: roomStateMax,
+      roomMembers: newRoomMembers,
+      assignedDisplayName: roomStateAssignedName
+    })
+
+    io.emit("member-left", newRoomMembers);
+  });
+
 });
 
 io.listen(3000);

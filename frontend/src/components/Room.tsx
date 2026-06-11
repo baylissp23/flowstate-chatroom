@@ -1,11 +1,13 @@
 import { useEffect, useState, useRef } from "react";
 import { useParams } from "react-router-dom";
 import { socket } from "@/client/client";
+import { useNavigate } from "react-router-dom";
 import Timer from "@/components/Timer";
 import RoomRoster from "@/components/RoomRoster";
 import Container from "react-bootstrap/Container";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
+import Button from "react-bootstrap/Button";
 
 function Room() {
   const params = useParams();
@@ -16,6 +18,8 @@ function Room() {
   const [timer, setTimer] = useState<number>(0);
   const [maxTimer, setMaxTimer] = useState<number>(1);
   const [roomMembers, setRoomMembers] = useState<string[]>([]);
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     socket.emit("join-room", { displayName: ogDisplayName.current, roomCode });
@@ -33,6 +37,10 @@ function Room() {
 
     socket.on("new-join", (roomMembersData) => {
       setRoomMembers(roomMembersData);
+    });
+
+    socket.on("member-left", (newRoomMembers) => {
+      setRoomMembers(newRoomMembers);
     });
 
     return () => {
@@ -54,6 +62,15 @@ function Room() {
             <RoomRoster roomMembers={roomMembers} thisUser={displayName} />
           </Col>
         </Row>
+        <Button
+          variant="danger"
+          onClick={() => {
+            socket.emit("leave-room", { displayName: displayName, roomCode });
+            navigate("/");
+          }}
+        >
+          Leave
+        </Button>
       </Container>
     </>
   );
