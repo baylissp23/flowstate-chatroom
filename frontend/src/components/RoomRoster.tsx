@@ -1,8 +1,9 @@
 import Card from "react-bootstrap/Card";
 import ListGroup from "react-bootstrap/ListGroup";
+import type { RoomMember } from "../../../shared/types";
 
 interface RoomRosterProps {
-  roomMembers: string[];
+  roomMembers: RoomMember[];
   thisUser: string;
 }
 
@@ -21,8 +22,8 @@ function RoomRoster({ roomMembers, thisUser }: RoomRosterProps) {
         <ListGroup>
           {roomMembers.map((member) => {
             return (
-              <ListGroup.Item variant={decideNameColour(member)}>
-                {member}
+              <ListGroup.Item variant={decideNameColour(member.displayName)}>
+                {member.displayName}
               </ListGroup.Item>
             );
           })}

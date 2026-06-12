@@ -2,6 +2,8 @@ import { useEffect, useState, useRef } from "react";
 import { useParams } from "react-router-dom";
 import { socket } from "@/client/client";
 import { useNavigate } from "react-router-dom";
+import { getClientId } from "@/client/clientId";
+import type { RoomMember } from "../../../shared/types";
 import Timer from "@/components/Timer";
 import RoomRoster from "@/components/RoomRoster";
 import Container from "react-bootstrap/Container";
@@ -17,12 +19,16 @@ function Room() {
   const [displayName, setDisplayName] = useState<string>("");
   const [timer, setTimer] = useState<number>(0);
   const [maxTimer, setMaxTimer] = useState<number>(1);
-  const [roomMembers, setRoomMembers] = useState<string[]>([]);
+  const [roomMembers, setRoomMembers] = useState<RoomMember[]>([]);
 
   const navigate = useNavigate();
 
   useEffect(() => {
-    socket.emit("join-room", { displayName: ogDisplayName.current, roomCode });
+    socket.emit("join-room", {
+      displayName: ogDisplayName.current,
+      clientId: getClientId(),
+      roomCode,
+    });
 
     socket.on("initial-info", (roomStateData) => {
       setTimer(roomStateData.current);
@@ -46,6 +52,8 @@ function Room() {
     return () => {
       socket.off("initial-info");
       socket.off("timer-tick");
+      socket.off("new-join");
+      socket.off("member-left");
     };
   }, [roomCode]);
 
@@ -65,7 +73,11 @@ function Room() {
         <Button
           variant="danger"
           onClick={() => {
-            socket.emit("leave-room", { displayName: displayName, roomCode });
+            socket.emit("leave-room", {
+              displayName: displayName,
+              roomCode: roomCode,
+              clientId: getClientId(),
+            });
             navigate("/");
           }}
         >
