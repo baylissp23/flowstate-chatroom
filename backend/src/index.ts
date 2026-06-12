@@ -1,5 +1,6 @@
 import { Server } from "socket.io";
 import type { JoinRoomPayload, RoomMember, RoomState } from "../../shared/types.js";
+import type { Socket } from "socket.io";
 
 const io = new Server({
   cors: {
@@ -28,6 +29,39 @@ function getUniqueDisplayName(roomMembers: RoomMember[], displayName: string) {
   }
 
   return candidateName;
+}
+
+function removeAndBroadcast(roomCode : string, clientId : string, socket : Socket) {
+  const roomData = roomState.get(roomCode);
+  if (!roomData) {
+    return;
+  }
+
+  const memberIndex = getMemberIndex(roomData.roomMembers, clientId);
+  if (memberIndex === -1) {
+    socket.leave(roomCode);
+    return;
+  }
+
+  const updatedRoomMembers = roomData.roomMembers.filter(
+    (member) => member.clientId !== clientId,
+  );
+
+  socket.leave(roomCode);
+
+  if (updatedRoomMembers.length === 0) {
+    roomState.delete(roomCode);
+    return;
+  }
+
+  const updatedRoomState: RoomState = {
+    ...roomData,
+    roomMembers: updatedRoomMembers,
+    assignedDisplayName: roomData.assignedDisplayName,
+  };
+
+  roomState.set(roomCode, updatedRoomState);
+  io.to(roomCode).emit("member-left", updatedRoomMembers);
 }
 
 setInterval(() => {
@@ -68,6 +102,9 @@ io.on("connection", (socket) => {
 
       roomState.set(roomCode, initialRoomState);
       socket.join(roomCode);
+      socket.data.roomCode = roomCode;
+      socket.data.clientId = clientId;
+      socket.data.displayName = displayName;
       io.to(socket.id).emit("initial-info", initialRoomState);
       return;
     }
@@ -82,6 +119,9 @@ io.on("connection", (socket) => {
       };
 
       socket.join(roomCode);
+      socket.data.roomCode = roomCode;
+      socket.data.clientId = clientId;
+      socket.data.displayName = existingMember!.displayName;
       io.to(socket.id).emit("initial-info", rejoinedRoomState);
       return;
     }
@@ -100,42 +140,26 @@ io.on("connection", (socket) => {
 
     roomState.set(roomCode, updatedRoomState);
     socket.join(roomCode);
+    socket.data.roomCode = roomCode;
+    socket.data.clientId = clientId;
+    socket.data.displayName = assignedDisplayName;
     io.to(roomCode).emit("new-join", updatedRoomMembers);
     io.to(socket.id).emit("initial-info", updatedRoomState);
   });
 
   socket.on("leave-room", (leaveInfo: JoinRoomPayload) => {
-    const roomData = roomState.get(leaveInfo.roomCode);
-    if (!roomData) {
-      return;
-    }
-
-    const memberIndex = getMemberIndex(roomData.roomMembers, leaveInfo.clientId);
-    if (memberIndex === -1) {
-      socket.leave(leaveInfo.roomCode);
-      return;
-    }
-
-    const updatedRoomMembers = roomData.roomMembers.filter(
-      (member) => member.clientId !== leaveInfo.clientId,
-    );
-
-    socket.leave(leaveInfo.roomCode);
-
-    if (updatedRoomMembers.length === 0) {
-      roomState.delete(leaveInfo.roomCode);
-      return;
-    }
-
-    const updatedRoomState: RoomState = {
-      ...roomData,
-      roomMembers: updatedRoomMembers,
-      assignedDisplayName: roomData.assignedDisplayName,
-    };
-
-    roomState.set(leaveInfo.roomCode, updatedRoomState);
-    io.to(leaveInfo.roomCode).emit("member-left", updatedRoomMembers);
+    removeAndBroadcast(leaveInfo.roomCode, leaveInfo.clientId, socket);
   });
+
+  socket.on("disconnecting", () => {
+    const roomCode = socket.data.roomCode;
+    const clientId = socket.data.clientId;
+
+    if (!roomCode || !clientId) {
+      return;
+    }
+    removeAndBroadcast(roomCode, clientId, socket);
+  })
 });
 
 io.listen(3000);
