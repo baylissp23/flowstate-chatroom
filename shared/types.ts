@@ -11,7 +11,18 @@ export interface RoomState {
 }
 
 export interface JoinRoomPayload {
-    displayName : string;
-    roomCode : string;
-    clientId : string;
+  displayName : string;
+  roomCode : string;
+  clientId : string;
+}
+
+export interface Rejoin {
+  roomState: RoomState;
+  displayName: string | undefined;
+}
+
+export interface DuplicateName {
+  assignedDisplayName: string;
+  updatedRoomMembers: RoomMember[];
+  updatedRoomState: RoomState;
 }
