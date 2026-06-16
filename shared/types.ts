@@ -26,3 +26,10 @@ export interface DuplicateName {
   updatedRoomMembers: RoomMember[];
   updatedRoomState: RoomState;
 }
+
+export interface ChatMessage {
+  id : number;
+  time : string | undefined;
+  text : string;
+  sender : string | undefined;
+}

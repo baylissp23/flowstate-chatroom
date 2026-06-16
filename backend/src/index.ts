@@ -1,8 +1,10 @@
 import { Server } from "socket.io";
-import type { JoinRoomPayload } from "../../shared/types.js";
+import type { ChatMessage, JoinRoomPayload } from "../../shared/types.js";
 import { getRoom } from "./room/roomStore.js";
 import { disconnect, duplicateNamePath, emptyRoomPath, rejoinRoomPath, leaveRoom } from "./room/roomService.js";
 import { tickEach } from "./room/timerService.js";
+import { handleChatMessage } from "./chat/chatService.js";
+import { broadcastMessage } from "./chat/chatEvents.js";
 
 const io = new Server({
   cors: {
@@ -69,7 +71,22 @@ io.on("connection", (socket) => {
     const clientId = socket.data.clientId;
 
     disconnect(roomCode, clientId, socket, io);
-  })
+  });
+
+  socket.on("send-message", (message : ChatMessage) => {
+    if (!socket.data.roomCode) {
+      io.to(socket.id).emit("message-not-sent", "message not sent: socket is not in a room");
+      return;
+    }
+
+    const messageSuccess : string | undefined = handleChatMessage(message, socket.data.roomCode);
+
+    if (messageSuccess === "success") {
+      broadcastMessage(io, socket.data.roomCode, message)
+    } else {
+      io.to(socket.id).emit("message-not-sent", "message not sent: could not be validated");
+    }
+  });
 });
 
 io.listen(3000);

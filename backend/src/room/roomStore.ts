@@ -1,5 +1,4 @@
-import type { RoomState, RoomMember, JoinRoomPayload } from "../../../shared/types.js";
-import { removeAndBroadcast } from "./roomService.js";
+import type { RoomState, RoomMember } from "../../../shared/types.js";
 
 let roomState: Map<string, RoomState> = new Map();
 
