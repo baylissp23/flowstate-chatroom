@@ -11,7 +11,30 @@ FlowState is a collaborative work-sessions platform that I am currently building
 
 ## Devlog
 
-### V3 - Room Roster and Disconnects
+### V4 - Room Chat
+
+I'm getting closer to finishing the MVP for FlowState!
+
+I've now got the foundations of the room chat working. I've done some testing on this - you can now open multiple tabs, join the same room, and chat to yourself from each of the tabs. Chat history is also available to anyone who joins a room late, or if a user refreshes the page, which I faced some challenges with. My solution was to just remount the chat component (using a dynamic key) whenever the number of messages changes in the frontend messages state, and also pull the message history from the backend using an `initial-messages` event which the socket captures from the server.
+
+Messages themselves are validated in quite a robust fashion. Users can't send empty messages, or messages that just consist of whitespace. Before I deploy the app I will also be making sure there are no malicious injection threats with the chat function.
+
+Furthermore, I also tried to keep the backend code for the chat function modular, by splitting logic into three modules: `chatService`, `chatStore`, and `chatEvents`. The service handles validation of chats, while the store holds the all the chat rooms privately and exports public functions to mutate them. Currently, `chatEvents` just emits a `new-message` event to the corresponding room so it can be rendered on the screen for all other users, but eventually this will house chat room locking functionality while the Pomodoro focus timer is active.
+
+**TLDR:**
+
+- Added live room-to-room chat
+- Added chat history for late joiners
+- Ensured chat refresh recovery
+- Added sender highlighting so the user knows which messages they sent at a glance
+- Empty and whitespace messages are rejected
+- Still want to tighten security before deployment
+
+### History
+
+<details>
+
+<summary><b>V3 - Room Roster and Disconnects</b></summary>
 
 I've done some work on making the rooms feel more collaborative by adding a "Room Roster". This shows everyone who is with you in the room by their display name. I had to update the `RoomState` type by adding an array of `roomMembers` and passing this through to the frontend on every `new-join` and `initial-info` event. This ensures the Room Roster updates dynamically each time a room records a new member.
 
@@ -25,7 +48,7 @@ Secondly, I've tightened up what happens when a user disconnects from a room. I 
 - Prevented refreshes breaking Room Roster with duplicate display names
 - Made various changes to types (e.g. clientId generated and stored with room state)
 
-### History
+</details>
 
 <details>
 <summary><b>V2 - Multi-Rooms</b></summary>
