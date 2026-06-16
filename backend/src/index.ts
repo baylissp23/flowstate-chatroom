@@ -5,6 +5,7 @@ import { disconnect, duplicateNamePath, emptyRoomPath, rejoinRoomPath, leaveRoom
 import { tickEach } from "./room/timerService.js";
 import { handleChatMessage } from "./chat/chatService.js";
 import { broadcastMessage } from "./chat/chatEvents.js";
+import { getChatHistory } from "./chat/chatStore.js";
 
 const io = new Server({
   cors: {
@@ -32,6 +33,7 @@ io.on("connection", (socket) => {
       socket.data.clientId = clientId;
       socket.data.displayName = displayName;
       io.to(socket.id).emit("initial-info", initialRoomState);
+      io.to(socket.id).emit("initial-messages", getChatHistory(roomCode));
       return;
     }
     // ---
@@ -46,6 +48,7 @@ io.on("connection", (socket) => {
       socket.data.clientId = clientId;
       socket.data.displayName = rejoinedResult.displayName;
       io.to(socket.id).emit("initial-info", rejoinedResult.roomState);
+      io.to(socket.id).emit("initial-messages", getChatHistory(roomCode));
       return;
     }
     // ---
@@ -57,6 +60,7 @@ io.on("connection", (socket) => {
     socket.data.clientId = clientId;
     socket.data.displayName = duplicateNameResult.assignedDisplayName;
     io.to(roomCode).emit("new-join", duplicateNameResult.updatedRoomMembers);
+    io.to(socket.id).emit("initial-messages", getChatHistory(roomCode));
     io.to(socket.id).emit("initial-info", duplicateNameResult.updatedRoomState);
     return;
     // ---

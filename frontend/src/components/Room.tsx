@@ -3,7 +3,7 @@ import { useParams } from "react-router-dom";
 import { socket } from "@/client/client";
 import { useNavigate } from "react-router-dom";
 import { getClientId } from "@/client/clientId";
-import type { RoomMember } from "../../../shared/types";
+import type { ChatMessage, RoomMember } from "../../../shared/types";
 import Timer from "@/components/Timer";
 import RoomRoster from "@/components/RoomRoster";
 import Container from "react-bootstrap/Container";
@@ -21,14 +21,16 @@ function Room() {
   const [timer, setTimer] = useState<number>(0);
   const [maxTimer, setMaxTimer] = useState<number>(1);
   const [roomMembers, setRoomMembers] = useState<RoomMember[]>([]);
+  const [initialMessages, setInitialMessages] = useState<ChatMessage[]>([]);
 
   const navigate = useNavigate();
 
   useEffect(() => {
-    socket.emit("join-room", {
-      displayName: ogDisplayName.current,
-      clientId: getClientId(),
-      roomCode,
+    socket.on("initial-messages", (messageData) => {
+      if (!messageData) {
+        return;
+      }
+      setInitialMessages(messageData);
     });
 
     socket.on("initial-info", (roomStateData) => {
@@ -50,11 +52,18 @@ function Room() {
       setRoomMembers(newRoomMembers);
     });
 
+    socket.emit("join-room", {
+      displayName: ogDisplayName.current,
+      clientId: getClientId(),
+      roomCode,
+    });
+
     return () => {
       socket.off("initial-info");
       socket.off("timer-tick");
       socket.off("new-join");
       socket.off("member-left");
+      socket.off("initial-messages");
     };
   }, [roomCode]);
 
@@ -71,7 +80,11 @@ function Room() {
             <RoomRoster roomMembers={roomMembers} thisUser={displayName} />
           </Col>
         </Row>
-        <Chat displayName={displayName} />
+        <Chat
+          displayName={displayName}
+          initialMessages={initialMessages}
+          key={`${roomCode}-${initialMessages.length}`}
+        />
         <Button
           variant="danger"
           onClick={() => {

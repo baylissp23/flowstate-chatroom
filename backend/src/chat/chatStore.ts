@@ -9,12 +9,7 @@ export function getMessage(id : number, roomCode : string) : ChatMessage | undef
   }
 
   if (chatRoom.length === 0) {
-    return {
-      id: 99999, // id 99999 is No Chat Found error
-      time: undefined,
-      text: "No Chat Found",
-      sender: undefined
-    }
+    return;
   }
 
   for (let i = 0; i < chatRoom.length; i++) {
@@ -24,12 +19,7 @@ export function getMessage(id : number, roomCode : string) : ChatMessage | undef
     }
   }
 
-  return {
-    id: 99999,
-    time: undefined,
-    text: "No Chat Found",
-    sender: undefined
-  }
+  return;
 }
 
 export function addMessage(time : Date, text : string, sender: string, roomCode : string) : ChatMessage {

@@ -8,11 +8,13 @@ import { useEffect, useState } from "react";
 import type { ChatMessage, MessagePayload } from "../../../shared/types";
 
 interface ChatProps {
+  key?: string;
   displayName: string;
+  initialMessages: ChatMessage[];
 }
 
-function Chat({ displayName }: ChatProps) {
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
+function Chat({ displayName, initialMessages }: ChatProps) {
+  const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
 
   useEffect(() => {
     const handleNewMessage = (message: ChatMessage) => {
@@ -36,7 +38,7 @@ function Chat({ displayName }: ChatProps) {
       <Container fluid>
         {messages.map((message) => {
           return (
-            <Card className="my-4">
+            <Card className="my-4" key={message.id}>
               <Card.Header>
                 {message.sender === displayName ? (
                   <span className="text-primary">{message.sender} (Me)</span>
