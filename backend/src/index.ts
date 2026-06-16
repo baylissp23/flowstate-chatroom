@@ -1,5 +1,5 @@
 import { Server } from "socket.io";
-import type { ChatMessage, JoinRoomPayload } from "../../shared/types.js";
+import type { ChatMessage, JoinRoomPayload, MessagePayload } from "../../shared/types.js";
 import { getRoom } from "./room/roomStore.js";
 import { disconnect, duplicateNamePath, emptyRoomPath, rejoinRoomPath, leaveRoom } from "./room/roomService.js";
 import { tickEach } from "./room/timerService.js";
@@ -73,16 +73,16 @@ io.on("connection", (socket) => {
     disconnect(roomCode, clientId, socket, io);
   });
 
-  socket.on("send-message", (message : ChatMessage) => {
+  socket.on("send-message", (message : MessagePayload) => {
     if (!socket.data.roomCode) {
       io.to(socket.id).emit("message-not-sent", "message not sent: socket is not in a room");
       return;
     }
 
-    const messageSuccess : string | undefined = handleChatMessage(message, socket.data.roomCode);
+    const chatMessage : ChatMessage | undefined = handleChatMessage(message, socket.data.roomCode, socket.data.displayName);
 
-    if (messageSuccess === "success") {
-      broadcastMessage(io, socket.data.roomCode, message)
+    if (chatMessage) {
+      broadcastMessage(io, socket.data.roomCode, chatMessage)
     } else {
       io.to(socket.id).emit("message-not-sent", "message not sent: could not be validated");
     }

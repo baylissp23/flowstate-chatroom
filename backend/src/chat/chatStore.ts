@@ -32,24 +32,27 @@ export function getMessage(id : number, roomCode : string) : ChatMessage | undef
   }
 }
 
-export function addMessage(time : Date, text : string, sender: string, roomCode : string) : void {
+export function addMessage(time : Date, text : string, sender: string, roomCode : string) : ChatMessage {
   const formattedTime = time.toTimeString();
-  const chatRoom = chatHistory.get(roomCode);
+  let chatRoom = chatHistory.get(roomCode);
 
   if (!chatRoom) {
-    return;
+    chatRoom = [];
   }
 
   const id = chatRoom.length; // based on ChatMessage array chronological order
 
-  chatRoom.push({
+  const message = {
     id: id,
     time: formattedTime,
     text: text,
     sender: sender
-  });
+  }
+
+  chatRoom.push(message);
 
   chatHistory.set(roomCode, chatRoom);
+  return message;
 }
 
 export function getChatHistory(roomCode : string) : ChatMessage[] | undefined {

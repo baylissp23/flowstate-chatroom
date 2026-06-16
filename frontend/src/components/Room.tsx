@@ -10,6 +10,7 @@ import Container from "react-bootstrap/Container";
 import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
 import Button from "react-bootstrap/Button";
+import Chat from "./Chat";
 
 function Room() {
   const params = useParams();
@@ -70,6 +71,7 @@ function Room() {
             <RoomRoster roomMembers={roomMembers} thisUser={displayName} />
           </Col>
         </Row>
+        <Chat displayName={displayName} />
         <Button
           variant="danger"
           onClick={() => {

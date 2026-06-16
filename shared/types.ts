@@ -33,3 +33,7 @@ export interface ChatMessage {
   text : string;
   sender : string | undefined;
 }
+
+export interface MessagePayload {
+  text : string;
+}
