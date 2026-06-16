@@ -16,7 +16,7 @@ function RoomRoster({ roomMembers, thisUser }: RoomRosterProps) {
   }
 
   return (
-    <Card>
+    <Card className="shadow-sm">
       <Card.Header>Room Members:</Card.Header>
       <Card.Body>
         <ListGroup>

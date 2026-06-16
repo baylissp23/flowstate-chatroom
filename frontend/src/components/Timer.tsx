@@ -33,7 +33,7 @@ function Timer({ timer, maxTime }: TimerProps) {
 
   return (
     <>
-      <Card>
+      <Card className="shadow-sm">
         <Card.Body>
           <div className="d-flex justify-content-center">
             <h1

@@ -58,7 +58,7 @@ function Chat({ displayName, initialMessages }: ChatProps) {
   return (
     <Container
       fluid
-      className="border border-dark border-2 rounded-3 mt-4 mb-2 bg-light"
+      className="border border-dark border-2 rounded-3 mt-4 mb-2 bg-light shadow"
     >
       <h1 className="mt-2">Chat</h1>
       <hr className="border border-dark opacity-25 mx-3 my-4"></hr>
