@@ -4,7 +4,7 @@ import InputGroup from "react-bootstrap/InputGroup";
 import Button from "react-bootstrap/Button";
 import Form from "react-bootstrap/Form";
 import { socket } from "@/client/client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { ChatMessage, MessagePayload } from "../../../shared/types";
 
 interface ChatProps {
@@ -15,6 +15,9 @@ interface ChatProps {
 
 function Chat({ displayName, initialMessages }: ChatProps) {
   const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
+
+  const scrollContainerRef = useRef<HTMLDivElement | null>(null);
+  const shouldAutoScrollRef = useRef(true);
 
   useEffect(() => {
     const handleNewMessage = (message: ChatMessage) => {
@@ -28,6 +31,30 @@ function Chat({ displayName, initialMessages }: ChatProps) {
     };
   }, []);
 
+  useEffect(() => {
+    if (!shouldAutoScrollRef.current) {
+      return;
+    }
+
+    const container = scrollContainerRef.current;
+    if (!container) {
+      return;
+    }
+
+    container.scrollTop = container.scrollHeight;
+  }, [messages]);
+
+  const handleScroll = () => {
+    const container = scrollContainerRef.current;
+    if (!container) {
+      return;
+    }
+
+    const distanceFromBottom =
+      container.scrollHeight - container.scrollTop - container.clientHeight;
+    shouldAutoScrollRef.current = distanceFromBottom < 24;
+  };
+
   return (
     <Container
       fluid
@@ -36,22 +63,29 @@ function Chat({ displayName, initialMessages }: ChatProps) {
       <h1 className="mt-2">Chat</h1>
       <hr className="border border-dark opacity-25 mx-3 my-4"></hr>
       <Container fluid>
-        {messages.map((message) => {
-          return (
-            <Card className="my-4" key={message.id}>
-              <Card.Header>
-                {message.sender === displayName ? (
-                  <span className="text-primary">{message.sender} (Me)</span>
-                ) : (
-                  <span>{message.sender}</span>
-                )}
-                {" | "}
-                {message.time}
-              </Card.Header>
-              <Card.Body>{message.text}</Card.Body>
-            </Card>
-          );
-        })}
+        <div
+          className="overflow-auto"
+          style={{ maxHeight: "30rem" }}
+          ref={scrollContainerRef}
+          onScroll={handleScroll}
+        >
+          {messages.map((message) => {
+            return (
+              <Card className="my-4" key={message.id}>
+                <Card.Header>
+                  {message.sender === displayName ? (
+                    <span className="text-primary">{message.sender} (Me)</span>
+                  ) : (
+                    <span>{message.sender}</span>
+                  )}
+                  {" | "}
+                  {message.time}
+                </Card.Header>
+                <Card.Body>{message.text}</Card.Body>
+              </Card>
+            );
+          })}
+        </div>
       </Container>
       <Form
         onSubmit={(e) => {
@@ -68,6 +102,7 @@ function Chat({ displayName, initialMessages }: ChatProps) {
           };
 
           socket.emit("send-message", message);
+          (e.currentTarget as HTMLFormElement).reset();
         }}
       >
         <InputGroup>

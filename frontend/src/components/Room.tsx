@@ -95,6 +95,7 @@ function Room() {
             });
             navigate("/");
           }}
+          className="mb-4"
         >
           Leave
         </Button>
