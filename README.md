@@ -11,11 +11,31 @@ FlowState is a collaborative work-sessions platform that I am currently building
 
 ## Devlog
 
-### V4 - Room Chat
+### V5 - Chat Locking/Unlocking
+
+I have implemented the chat locking functionality when a room is in "focus" mode. This means that, when the Pomodoro focus timer is active, no one in the room can send any messages. Right now, this is only dealt with on the frontend, so there will be ways to circumvent the chat lock using Inspect in the browser, but I am looking at the best way to prevent this by using some validation in the backend. When the focus timer finished, a break timer begins, and the chat is unlocked.
+
+**Other Considerations:**
+
+As I am getting closer to completing the MVP for FlowState, I have considered refactoring and totally redesigning the UI at some stage to be more characteristic of a focussed work platform. At the moment, the UI uses `react-bootstrap`, which has been great for rapid development. However, I don't like the opinionated cookie-cutter vibe of it as it doesn't really give off "this is a platform for focussed work".
+
+Therefore, I will be re-doing the UI using `tailwindcss` once the MVP is complete, more specifically using the `shadcn` components library. I will aim for a minimalist and clean user interface to minimise distractions.
+
+**TLDR:**
+
+- Implemented chat locking/unlocking depending on timer phase
+- Implemented dedicated break timer in rooms
+- Considered UI refactor using `shadcn`.
+
+### History
+
+<details>
+
+<summary><b>V4 - Room Chat</b></summary>
 
 I'm getting closer to finishing the MVP for FlowState!
 
-I've now got the foundations of the room chat working. I've done some testing on this - you can now open multiple tabs, join the same room, and chat to yourself from each of the tabs. Chat history is also available to anyone who joins a room late, or if a user refreshes the page, which I faced some challenges with. My solution was to just remount the chat component (using a dynamic key) whenever the number of messages changes in the frontend messages state, and also pull the message history from the backend using an `initial-messages` event which the socket captures from the server.
+I've now got the foundations of the room chat working. I've done some testing on this – you can now open multiple tabs, join the same room, and chat to yourself from each of the tabs. Chat history is also available to anyone who joins a room late, or if a user refreshes the page, which I faced some challenges with. My solution was to just remount the chat component (using a dynamic key) whenever the number of messages changes in the frontend messages state, and also pull the message history from the backend using an `initial-messages` event which the socket captures from the server.
 
 Messages themselves are validated in quite a robust fashion. Users can't send empty messages, or messages that just consist of whitespace. Before I deploy the app I will also be making sure there are no malicious injection threats with the chat function.
 
@@ -30,7 +50,7 @@ Furthermore, I also tried to keep the backend code for the chat function modular
 - Empty and whitespace messages are rejected
 - Still want to tighten security before deployment
 
-### History
+</details>
 
 <details>
 
