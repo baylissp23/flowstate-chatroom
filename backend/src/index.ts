@@ -20,6 +20,7 @@ setInterval(() => {
 
 io.on("connection", (socket) => {
   console.log("Connection with client established: ", socket.id);
+  setRoom("testroom", 20, 20, [{clientId: "test", displayName: "test1"}], "test1", 10, 10, "focus");
 
   socket.on("join-room", (joinInfo: JoinRoomPayload) => {
     const { displayName, roomCode, clientId } = joinInfo;

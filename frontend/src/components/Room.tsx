@@ -3,7 +3,7 @@ import { useParams } from "react-router-dom";
 import { socket } from "@/client/client";
 import { useNavigate } from "react-router-dom";
 import { getClientId } from "@/client/clientId";
-import type { ChatMessage, RoomMember } from "../../../shared/types";
+import type { ChatMessage, Phase, RoomMember } from "../../../shared/types";
 import Timer from "@/components/Timer";
 import RoomRoster from "@/components/RoomRoster";
 import Container from "react-bootstrap/Container";
@@ -24,6 +24,7 @@ function Room() {
   const [maxBreakTimer, setMaxBreakTimer] = useState<number>(1);
   const [roomMembers, setRoomMembers] = useState<RoomMember[]>([]);
   const [initialMessages, setInitialMessages] = useState<ChatMessage[]>([]);
+  const [chatPhase, setChatPhase] = useState<Phase>("focus");
 
   const navigate = useNavigate();
 
@@ -46,6 +47,7 @@ function Room() {
     socket.on("timer-tick", (roomStateData) => {
       setTimer(roomStateData.current);
       setBreakTimer(roomStateData.breakCurrent);
+      setChatPhase(roomStateData.phase);
     });
 
     socket.on("new-join", (roomMembersData) => {
@@ -89,6 +91,7 @@ function Room() {
           displayName={displayName}
           initialMessages={initialMessages}
           key={`${roomCode}-${initialMessages.length}`}
+          phase={chatPhase}
         />
         <Button
           variant="danger"

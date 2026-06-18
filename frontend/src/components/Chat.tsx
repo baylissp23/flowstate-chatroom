@@ -5,15 +5,16 @@ import Button from "react-bootstrap/Button";
 import Form from "react-bootstrap/Form";
 import { socket } from "@/client/client";
 import { useEffect, useRef, useState } from "react";
-import type { ChatMessage, MessagePayload } from "../../../shared/types";
+import type { ChatMessage, MessagePayload, Phase } from "../../../shared/types";
 
 interface ChatProps {
   key?: string;
   displayName: string;
   initialMessages: ChatMessage[];
+  phase: Phase;
 }
 
-function Chat({ displayName, initialMessages }: ChatProps) {
+function Chat({ displayName, initialMessages, phase }: ChatProps) {
   const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
 
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
@@ -53,6 +54,13 @@ function Chat({ displayName, initialMessages }: ChatProps) {
     const distanceFromBottom =
       container.scrollHeight - container.scrollTop - container.clientHeight;
     shouldAutoScrollRef.current = distanceFromBottom < 24;
+  };
+
+  const chatLocked = () => {
+    if (phase === "focus") {
+      return true;
+    }
+    return false;
   };
 
   return (
@@ -112,6 +120,7 @@ function Chat({ displayName, initialMessages }: ChatProps) {
             rows={3}
             className="mb-2"
             name="messageText"
+            disabled={chatLocked()}
           ></Form.Control>
           <Button type="submit" variant="primary" className="mx-2 mb-2">
             Send
