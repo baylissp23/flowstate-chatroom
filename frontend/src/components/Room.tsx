@@ -20,6 +20,8 @@ function Room() {
   const [displayName, setDisplayName] = useState<string>("");
   const [timer, setTimer] = useState<number>(0);
   const [maxTimer, setMaxTimer] = useState<number>(1);
+  const [breakTimer, setBreakTimer] = useState<number>(0);
+  const [maxBreakTimer, setMaxBreakTimer] = useState<number>(1);
   const [roomMembers, setRoomMembers] = useState<RoomMember[]>([]);
   const [initialMessages, setInitialMessages] = useState<ChatMessage[]>([]);
 
@@ -36,12 +38,14 @@ function Room() {
     socket.on("initial-info", (roomStateData) => {
       setTimer(roomStateData.current);
       setMaxTimer(roomStateData.max);
+      setMaxBreakTimer(roomStateData.breakMax);
       setDisplayName(roomStateData.assignedDisplayName);
       setRoomMembers(roomStateData.roomMembers);
     });
 
     socket.on("timer-tick", (roomStateData) => {
       setTimer(roomStateData.current);
+      setBreakTimer(roomStateData.breakCurrent);
     });
 
     socket.on("new-join", (roomMembersData) => {
@@ -75,6 +79,7 @@ function Room() {
         <Row>
           <Col>
             <Timer timer={timer} maxTime={maxTimer} />
+            <Timer timer={breakTimer} maxTime={maxBreakTimer} />
           </Col>
           <Col>
             <RoomRoster roomMembers={roomMembers} thisUser={displayName} />

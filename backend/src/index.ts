@@ -1,6 +1,6 @@
 import { Server } from "socket.io";
 import type { ChatMessage, JoinRoomPayload, MessagePayload } from "../../shared/types.js";
-import { getRoom } from "./room/roomStore.js";
+import { getRoom, setRoom } from "./room/roomStore.js";
 import { disconnect, duplicateNamePath, emptyRoomPath, rejoinRoomPath, leaveRoom } from "./room/roomService.js";
 import { tickEach } from "./room/timerService.js";
 import { handleChatMessage } from "./chat/chatService.js";

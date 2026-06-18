@@ -1,4 +1,4 @@
-import type { RoomState, RoomMember } from "../../../shared/types.js";
+import type { RoomState, RoomMember, Phase } from "../../../shared/types.js";
 
 let roomState: Map<string, RoomState> = new Map();
 
@@ -15,7 +15,10 @@ export function setRoom(
   currentTimer : number, 
   maxTimer : number, 
   roomMembers : RoomMember[], 
-  assignedDisplayName : string
+  assignedDisplayName : string,
+  breakCurrent : number,
+  breakMax: number,
+  phase: Phase
 ) : void {
   roomState.set(roomCode,
     {
@@ -23,6 +26,9 @@ export function setRoom(
       max: maxTimer,
       roomMembers: roomMembers,
       assignedDisplayName: assignedDisplayName,
+      breakCurrent: breakCurrent,
+      breakMax: breakMax,
+      phase: phase
     }
   ) 
 }

@@ -3,11 +3,18 @@ export interface RoomMember {
   displayName : string;
 }
 
+export type Phase =
+  | "focus"
+  | "break"
+
 export interface RoomState {
   current : number;
   max : number;
   roomMembers : RoomMember[];
   assignedDisplayName : string;
+  breakCurrent : number;
+  breakMax : number;
+  phase: Phase;
 }
 
 export interface JoinRoomPayload {

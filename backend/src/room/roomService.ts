@@ -36,7 +36,16 @@ export function removeAndBroadcast(roomCode : string, clientId : string, socket 
     assignedDisplayName: roomData.assignedDisplayName,
   };
 
-  setRoom(roomCode, updatedRoomState.current, updatedRoomState.max, updatedRoomState.roomMembers, updatedRoomState.assignedDisplayName);
+  setRoom(
+    roomCode, 
+    updatedRoomState.current, 
+    updatedRoomState.max, 
+    updatedRoomState.roomMembers, 
+    updatedRoomState.assignedDisplayName,
+    updatedRoomState.breakCurrent,
+    updatedRoomState.breakMax,
+    updatedRoomState.phase
+  );
   io.to(roomCode).emit("member-left", updatedRoomMembers);
 }
 
@@ -55,9 +64,21 @@ export function emptyRoomPath(joinInfo : JoinRoomPayload, socket : Socket) : Roo
         max: 1500,
         roomMembers: [{ clientId, displayName }],
         assignedDisplayName: displayName,
+        breakCurrent: 300,
+        breakMax: 300,
+        phase: "focus"
       };
     
-      setRoom(roomCode, initialRoomState.current, initialRoomState.max, initialRoomState.roomMembers, initialRoomState.assignedDisplayName);
+      setRoom(
+        roomCode, 
+        initialRoomState.current, 
+        initialRoomState.max, 
+        initialRoomState.roomMembers, 
+        initialRoomState.assignedDisplayName,
+        initialRoomState.breakCurrent,
+        initialRoomState.breakMax,
+        initialRoomState.phase
+      );
       return initialRoomState;
     }
 }
@@ -93,7 +114,16 @@ export function duplicateNamePath(roomData : RoomState, clientId : string, roomC
     assignedDisplayName,
   };
     
-  setRoom(roomCode, updatedRoomState.current, updatedRoomState.max, updatedRoomState.roomMembers, updatedRoomState.assignedDisplayName);
+  setRoom(
+    roomCode, 
+    updatedRoomState.current, 
+    updatedRoomState.max, 
+    updatedRoomState.roomMembers, 
+    updatedRoomState.assignedDisplayName, 
+    updatedRoomState.breakCurrent, 
+    updatedRoomState.breakMax, 
+    updatedRoomState.phase
+  );
 
   return {
     assignedDisplayName: assignedDisplayName,
