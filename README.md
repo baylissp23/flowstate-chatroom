@@ -13,7 +13,7 @@ FlowState is a collaborative work-sessions platform that I am currently building
 
 ### V5 - Chat Locking/Unlocking
 
-I have implemented the chat locking functionality when a room is in "focus" mode. This means that, when the Pomodoro focus timer is active, no one in the room can send any messages. Right now, this is only dealt with on the frontend, so there will be ways to circumvent the chat lock using Inspect in the browser, but I am looking at the best way to prevent this by using some validation in the backend. When the focus timer finished, a break timer begins, and the chat is unlocked.
+I have implemented the chat locking functionality when a room is in "focus" mode. This means that, when the Pomodoro focus timer is active, no one in the room can send any messages. Right now, this is only dealt with on the frontend, so there will be ways to circumvent the chat lock using Inspect in the browser, but I am looking at the best way to prevent this by using some validation in the backend. When the focus timer finishes, a break timer begins, and the chat is unlocked.
 
 **Other Considerations:**
 
