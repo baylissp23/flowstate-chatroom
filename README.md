@@ -11,7 +11,29 @@ FlowState is a collaborative work-sessions platform that I am currently building
 
 ## Devlog
 
-### V5 - Chat Locking/Unlocking
+### V6 - Admin Permissions and MVP Complete!
+
+Today finally marks the completion of the initial Minimum Viable Product I set out for FlowState. I implemented some of my original plans a bit differently than I expected to, but overall, FlowState is now at stage where it has some proper utility.
+
+I did some work on adding "Admin" and "Member" roles to rooms. All actions that admins have access to are validated in the backend to stop users forging socket events to change their permissions to admin. Rooms now begin with the timer paused. As an admin, you can start the room timer, pause it, pass admin status to a different member, or end the room.
+
+I also implemented a brief fix – I noticed that when an admin user refreshes their page, they lose admin status, which means no one in the room is an admin anymore. I fixed this by adding a grace period of `3000ms`, so that users stick around in the room for a short time and can grab their permissions back if they perform a refresh.
+
+Hacking the chat field by simply changing the `textarea`'s `disabled` field is still a known issue which I need to get around to fixing.
+
+**TLDR:**
+
+- Added "admin" and "member" permissions to rooms
+- Added admin actions allowing admins to start and pause the timer, pass admin status, and end rooms
+- Fixed admin status being lost when you refresh a room
+- Hacking the chat field with a simple Inspect is still a known issue
+- MVP complete!
+
+### History
+
+<details>
+
+<summary><b>V5 - Chat Locking/Unlocking</b></summary>
 
 I have implemented the chat locking functionality when a room is in "focus" mode. This means that, when the Pomodoro focus timer is active, no one in the room can send any messages. Right now, this is only dealt with on the frontend, so there will be ways to circumvent the chat lock using Inspect in the browser, but I am looking at the best way to prevent this by using some validation in the backend. When the focus timer finishes, a break timer begins, and the chat is unlocked.
 
@@ -27,7 +49,7 @@ Therefore, I will be re-doing the UI using `tailwindcss` once the MVP is complet
 - Implemented dedicated break timer in rooms
 - Considered UI refactor using `shadcn`.
 
-### History
+</details>
 
 <details>
 
