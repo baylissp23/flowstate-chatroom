@@ -6,7 +6,7 @@ import { tickEach } from "./room/timerService.js";
 import { handleChatMessage } from "./chat/chatService.js";
 import { broadcastMessage } from "./chat/chatEvents.js";
 import { getChatHistory } from "./chat/chatStore.js";
-import { tryAdminPromote } from "./room/permissionService.js";
+import { canPauseTimer, pauseTimer, tryAdminPromote } from "./room/permissionService.js";
 
 const io = new Server({
   cors: {
@@ -86,6 +86,28 @@ io.on("connection", (socket) => {
     }
 
     io.to(newAdminData.roomCode).emit("new-admin-promotion", promoteResult.updatedRoomMembers);
+  });
+
+  socket.on("pause-timer", (roomCode : string) => {
+    const canPause = canPauseTimer(socket.data.permission);
+
+    if (!canPause) {
+      io.to(roomCode).emit("new-pause-request", { success: false });
+      return;
+    }
+
+    const pauseResult = pauseTimer(roomCode);
+    if (pauseResult === "fail") {
+      io.to(roomCode).emit("new-pause-request", { success: false });
+      return;
+    }
+
+    io.to(roomCode).emit("new-pause-request", {
+      success: true,
+      isPaused: pauseResult,
+    })
+
+
   });
 
   socket.on("leave-room", (leaveInfo: JoinRoomPayload) => {

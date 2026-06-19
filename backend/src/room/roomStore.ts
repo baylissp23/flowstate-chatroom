@@ -18,7 +18,8 @@ export function setRoom(
   assignedDisplayName : string,
   breakCurrent : number,
   breakMax: number,
-  phase: Phase
+  phase: Phase,
+  isPaused: boolean
 ) : void {
   roomState.set(roomCode,
     {
@@ -28,7 +29,8 @@ export function setRoom(
       assignedDisplayName: assignedDisplayName,
       breakCurrent: breakCurrent,
       breakMax: breakMax,
-      phase: phase
+      phase: phase,
+      isPaused: isPaused
     }
   ) 
 }

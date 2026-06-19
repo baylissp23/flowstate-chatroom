@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { getClientId } from "@/client/clientId";
 import type {
   ChatMessage,
+  PauseTimerResult,
   Permission,
   Phase,
   RoomMember,
@@ -25,6 +26,7 @@ function Room() {
 
   const [displayName, setDisplayName] = useState<string>("");
   const [timer, setTimer] = useState<number>(0);
+  const [timerPaused, setTimerPaused] = useState(false);
   const [maxTimer, setMaxTimer] = useState<number>(1);
   const [breakTimer, setBreakTimer] = useState<number>(0);
   const [maxBreakTimer, setMaxBreakTimer] = useState<number>(1);
@@ -71,6 +73,13 @@ function Room() {
       }
     });
 
+    socket.on("new-pause-request", (pauseTimerResult: PauseTimerResult) => {
+      if (!pauseTimerResult.success) {
+        return;
+      }
+      setTimerPaused(pauseTimerResult.isPaused);
+    });
+
     socket.on("new-join", (roomMembersData) => {
       setRoomMembers(roomMembersData);
     });
@@ -99,7 +108,12 @@ function Room() {
     <>
       <div className="d-flex justify-content-between align-items-center">
         <h1>Room: {roomCode}</h1>
-        <RoomSettings permission={permission} roomMembers={roomMembers} />
+        <RoomSettings
+          permission={permission}
+          roomMembers={roomMembers}
+          roomCode={roomCode!}
+          timerIsPaused={timerPaused}
+        />
       </div>
 
       <p className="text-muted lead">

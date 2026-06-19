@@ -1,6 +1,6 @@
 import type { Server, Socket } from "socket.io";
-import type { AdminPromoteResult, RoomMember } from "../../../shared/types.js";
-import { getRoom } from "./roomStore.js";
+import type { AdminPromoteResult, Permission, RoomMember } from "../../../shared/types.js";
+import { getRoom, setRoom } from "./roomStore.js";
 import { setClientPermission, setRoomMemberPermission } from "./roomService.js";
 
 export async function tryAdminPromote(sourceSocket : Socket, targetClientId : string, roomCode : string, member : RoomMember, io : Server) : Promise<AdminPromoteResult | undefined> {
@@ -64,4 +64,47 @@ function checkNewAdminCanPromote(roomCode : string, member : RoomMember) : boole
   } else {
     return false;
   }
+}
+
+export function canPauseTimer(socketPermission: Permission) : boolean {
+  if (socketPermission === "admin") {
+    return true;
+  }
+  return false;
+}
+
+export function pauseTimer(roomCode : string) : boolean | "fail" {
+  const room = getRoom(roomCode);
+
+  if (!room) {
+    return "fail";
+  }
+
+  if (room.isPaused === true) {
+    setRoom(
+      roomCode,
+      room.current,
+      room.max,
+      room.roomMembers,
+      room.assignedDisplayName,
+      room.breakCurrent,
+      room.breakMax,
+      room.phase,
+      false, // set isPaused to false in room state
+    );
+    return false;
+  }
+  
+  setRoom(
+    roomCode,
+    room.current,
+    room.max,
+    room.roomMembers,
+    room.assignedDisplayName,
+    room.breakCurrent,
+    room.breakMax,
+    room.phase,
+    true, // set isPaused to true in room state
+  );
+  return true;
 }

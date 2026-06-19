@@ -62,7 +62,8 @@ export function removeAndBroadcast(roomCode : string, clientId : string, socket 
     updatedRoomState.assignedDisplayName,
     updatedRoomState.breakCurrent,
     updatedRoomState.breakMax,
-    updatedRoomState.phase
+    updatedRoomState.phase,
+    updatedRoomState.isPaused,
   );
   io.to(roomCode).emit("member-left", updatedRoomMembers);
 }
@@ -84,7 +85,8 @@ export function emptyRoomPath(joinInfo : JoinRoomPayload, socket : Socket) : Roo
         assignedDisplayName: displayName,
         breakCurrent: 300,
         breakMax: 300,
-        phase: "focus"
+        phase: "focus",
+        isPaused: true,
       };
     
       setRoom(
@@ -95,7 +97,8 @@ export function emptyRoomPath(joinInfo : JoinRoomPayload, socket : Socket) : Roo
         initialRoomState.assignedDisplayName,
         initialRoomState.breakCurrent,
         initialRoomState.breakMax,
-        initialRoomState.phase
+        initialRoomState.phase,
+        initialRoomState.isPaused,
       );
       return initialRoomState;
     }
@@ -143,7 +146,8 @@ export function duplicateNamePath(roomData : RoomState, clientId : string, roomC
     updatedRoomState.assignedDisplayName, 
     updatedRoomState.breakCurrent, 
     updatedRoomState.breakMax, 
-    updatedRoomState.phase
+    updatedRoomState.phase,
+    updatedRoomState.isPaused,
   );
 
   return {
@@ -213,6 +217,7 @@ export function setRoomMemberPermission(roomCode : string, clientId : string, pe
     room.breakCurrent,
     room.breakMax,
     room.phase,
+    room.isPaused,
   );
 
   return true;

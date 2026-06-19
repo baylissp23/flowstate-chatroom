@@ -21,6 +21,7 @@ export interface RoomState {
   breakCurrent : number;
   breakMax : number;
   phase: Phase;
+  isPaused: boolean;
 }
 
 export interface JoinRoomPayload {
@@ -57,4 +58,11 @@ export type AdminPromoteResult =
   | {
     success: true;
     updatedRoomMembers: RoomMember[];
+  }
+
+export type PauseTimerResult =
+  | { success: false }
+  | {
+    success: true;
+    isPaused: boolean;
   }

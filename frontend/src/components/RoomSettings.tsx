@@ -6,9 +6,16 @@ import PassAdmin from "./PassAdmin";
 interface RoomSettingsProps {
   permission: Permission;
   roomMembers: RoomMember[];
+  roomCode: string;
+  timerIsPaused: boolean;
 }
 
-function RoomSettings({ permission, roomMembers }: RoomSettingsProps) {
+function RoomSettings({
+  permission,
+  roomMembers,
+  roomCode,
+  timerIsPaused,
+}: RoomSettingsProps) {
   const decideButtons = () => {
     if (permission === "admin") {
       return (
@@ -16,22 +23,13 @@ function RoomSettings({ permission, roomMembers }: RoomSettingsProps) {
           <div>
             <span className="text-muted lead me-3">Admin Actions:</span>
             <Button
-              variant="primary"
-              className="mx-1"
-              onClick={() => {
-                socket.emit("start-focus");
-              }}
-            >
-              Start Focus
-            </Button>
-            <Button
               variant="warning"
               className="mx-1"
               onClick={() => {
-                socket.emit("pause-timer");
+                socket.emit("pause-timer", roomCode);
               }}
             >
-              Pause
+              {timerIsPaused ? "Start" : "Pause"}
             </Button>
             <PassAdmin roomMembers={roomMembers} />
             <Button
