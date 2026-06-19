@@ -4,13 +4,16 @@ import type { Server } from "socket.io";
 
 export function tickEach(io : Server) : void {
   forEachRoom((timer, roomCode) => {
-    if (timer.phase === "focus") {
-      timer.current -= 1;
-      io.to(roomCode).emit("timer-tick", timer);
-    } else {
-      timer.breakCurrent -= 1;
-      io.to(roomCode).emit("timer-tick", timer);
+    if (!timer.isPaused) {
+      if (timer.phase === "focus") {
+        timer.current -= 1;
+        io.to(roomCode).emit("timer-tick", timer);
+      } else {
+        timer.breakCurrent -= 1;
+        io.to(roomCode).emit("timer-tick", timer);
+      }
     }
+    
 
     const newPhaseRoom = attemptPhaseChange(roomCode);
     if (!newPhaseRoom) {
@@ -25,7 +28,8 @@ export function tickEach(io : Server) : void {
       newPhaseRoom.assignedDisplayName,
       newPhaseRoom.breakCurrent,
       newPhaseRoom.breakMax,
-      newPhaseRoom.phase
+      newPhaseRoom.phase,
+      newPhaseRoom.isPaused,
     )
   });
 }

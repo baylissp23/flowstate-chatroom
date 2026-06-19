@@ -1,7 +1,25 @@
 import { getRoom, deleteRoom, setRoom } from "./roomStore.js";
-import type { RoomState, RoomMember, JoinRoomPayload, Rejoin, DuplicateName } from "../../../shared/types.js";
-import type { Socket, Server } from "socket.io";
+import type { RoomState, RoomMember, JoinRoomPayload, Rejoin, DuplicateName, Permission } from "../../../shared/types.js";
+import type { Socket, Server, RemoteSocket } from "socket.io";
 import { getUniqueDisplayName } from "./displayName.js";
+
+const DISCONNECT_GRACE_MS = 3000;
+const pendingDisconnects = new Map<string, ReturnType<typeof setTimeout>>()
+
+function getDisconnectKey(roomCode : string, clientId: string) : string {
+  return `${roomCode}:${clientId}`
+}
+
+function cancelPendingDisconnect(roomCode : string, clientId : string) {
+  const key = getDisconnectKey(roomCode, clientId);
+  const timeout = pendingDisconnects.get(key);
+
+  if (timeout) {
+    clearTimeout(timeout);
+    pendingDisconnects.delete(key);
+  }
+}
+
 
 function getMemberIndex(roomMembers: RoomMember[], clientId: string) {
   return roomMembers.findIndex((member) => member.clientId === clientId);
@@ -44,7 +62,8 @@ export function removeAndBroadcast(roomCode : string, clientId : string, socket 
     updatedRoomState.assignedDisplayName,
     updatedRoomState.breakCurrent,
     updatedRoomState.breakMax,
-    updatedRoomState.phase
+    updatedRoomState.phase,
+    updatedRoomState.isPaused,
   );
   io.to(roomCode).emit("member-left", updatedRoomMembers);
 }
@@ -62,11 +81,12 @@ export function emptyRoomPath(joinInfo : JoinRoomPayload, socket : Socket) : Roo
       const initialRoomState: RoomState = {
         current: 1500,
         max: 1500,
-        roomMembers: [{ clientId, displayName }],
+        roomMembers: [{ clientId: clientId, displayName: displayName, permission: "admin", roomCode: roomCode }],
         assignedDisplayName: displayName,
         breakCurrent: 300,
         breakMax: 300,
-        phase: "focus"
+        phase: "focus",
+        isPaused: true,
       };
     
       setRoom(
@@ -77,16 +97,19 @@ export function emptyRoomPath(joinInfo : JoinRoomPayload, socket : Socket) : Roo
         initialRoomState.assignedDisplayName,
         initialRoomState.breakCurrent,
         initialRoomState.breakMax,
-        initialRoomState.phase
+        initialRoomState.phase,
+        initialRoomState.isPaused,
       );
       return initialRoomState;
     }
 }
 
-export function rejoinRoomPath(roomData : RoomState, clientId : string) : Rejoin | undefined {
+export function rejoinRoomPath(roomData : RoomState, roomCode: string, clientId : string) : Rejoin | undefined {
   const existingMemberIndex = getMemberIndex(roomData.roomMembers, clientId);
 
   if (existingMemberIndex !== -1) {
+    cancelPendingDisconnect(roomCode, clientId);
+
     const existingMember = roomData.roomMembers[existingMemberIndex];
     const rejoinedRoomState: RoomState = {
       ...roomData,
@@ -96,6 +119,7 @@ export function rejoinRoomPath(roomData : RoomState, clientId : string) : Rejoin
     return {
       roomState: rejoinedRoomState,
       displayName: existingMember?.displayName,
+      permission: existingMember?.permission,
     }
   }
   return;
@@ -103,9 +127,9 @@ export function rejoinRoomPath(roomData : RoomState, clientId : string) : Rejoin
 
 export function duplicateNamePath(roomData : RoomState, clientId : string, roomCode : string, displayName : string) : DuplicateName {
   const assignedDisplayName = getUniqueDisplayName(roomData.roomMembers, displayName);
-  const updatedRoomMembers = [
+  const updatedRoomMembers : RoomMember[] = [
     ...roomData.roomMembers,
-    { clientId, displayName: assignedDisplayName },
+    { clientId: clientId, displayName: assignedDisplayName, permission: "member", roomCode: roomCode },
   ];
     
   const updatedRoomState: RoomState = {
@@ -122,7 +146,8 @@ export function duplicateNamePath(roomData : RoomState, clientId : string, roomC
     updatedRoomState.assignedDisplayName, 
     updatedRoomState.breakCurrent, 
     updatedRoomState.breakMax, 
-    updatedRoomState.phase
+    updatedRoomState.phase,
+    updatedRoomState.isPaused,
   );
 
   return {
@@ -136,9 +161,65 @@ export function disconnect(roomCode : string, clientId : string, socket : Socket
   if (!roomCode || !clientId) {
       return;
   }
-  removeAndBroadcast(roomCode, clientId, socket, io);
+
+  const key = getDisconnectKey(roomCode, clientId);
+  cancelPendingDisconnect(roomCode, clientId);
+
+  const timeout = setTimeout(() => {
+    pendingDisconnects.delete(key);
+    removeAndBroadcast(roomCode, clientId, socket, io);
+  }, DISCONNECT_GRACE_MS);
+
+  pendingDisconnects.set(key, timeout);
+
 }
 
 export function leaveRoom(leaveInfo : JoinRoomPayload, socket : Socket, io : Server) {
+  cancelPendingDisconnect(leaveInfo.roomCode, leaveInfo.clientId);
   removeAndBroadcast(leaveInfo.roomCode, leaveInfo.clientId, socket, io);
 }
+
+export async function setClientPermission(
+  roomCode: string,
+  clientId: string,
+  permission: Permission,
+  io: Server,
+) {
+  const roomSockets = await io.in(roomCode).fetchSockets();
+  const targetSocket = roomSockets.find((socket) => socket.data.clientId === clientId);
+
+  if (!targetSocket) {
+    return;
+  }
+
+  targetSocket.data.permission = permission;
+}
+
+export function setRoomMemberPermission(roomCode : string, clientId : string, permission: Permission) : boolean {
+  const room = getRoom(roomCode);
+
+  if (!room) {
+    return false;
+  }
+
+  const updatedRoomMembers = room.roomMembers.map((member) =>
+    member.clientId === clientId
+      ? { ...member, permission }
+      : member,
+  );
+
+  setRoom(
+    roomCode,
+    room.current,
+    room.max,
+    updatedRoomMembers,
+    room.assignedDisplayName,
+    room.breakCurrent,
+    room.breakMax,
+    room.phase,
+    room.isPaused,
+  );
+
+  return true;
+}
+

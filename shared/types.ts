@@ -1,6 +1,12 @@
+export type Permission =
+  | "admin"
+  | "member"
+
 export interface RoomMember {
   clientId : string;
   displayName : string;
+  permission : Permission;
+  roomCode : string;
 }
 
 export type Phase =
@@ -15,6 +21,7 @@ export interface RoomState {
   breakCurrent : number;
   breakMax : number;
   phase: Phase;
+  isPaused: boolean;
 }
 
 export interface JoinRoomPayload {
@@ -26,6 +33,7 @@ export interface JoinRoomPayload {
 export interface Rejoin {
   roomState: RoomState;
   displayName: string | undefined;
+  permission: Permission | undefined;
 }
 
 export interface DuplicateName {
@@ -43,4 +51,22 @@ export interface ChatMessage {
 
 export interface MessagePayload {
   text : string;
+}
+
+export type AdminPromoteResult =
+  | { success: false }
+  | {
+    success: true;
+    updatedRoomMembers: RoomMember[];
+  }
+
+export type PauseTimerResult =
+  | { success: false }
+  | {
+    success: true;
+    isPaused: boolean;
+  }
+
+export interface EndRoomResult {
+  success: boolean;
 }

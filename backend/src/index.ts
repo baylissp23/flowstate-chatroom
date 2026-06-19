@@ -1,11 +1,12 @@
 import { Server } from "socket.io";
-import type { ChatMessage, JoinRoomPayload, MessagePayload } from "../../shared/types.js";
-import { getRoom, setRoom } from "./room/roomStore.js";
+import type { ChatMessage, JoinRoomPayload, MessagePayload, RoomMember } from "../../shared/types.js";
+import { getRoom } from "./room/roomStore.js";
 import { disconnect, duplicateNamePath, emptyRoomPath, rejoinRoomPath, leaveRoom } from "./room/roomService.js";
 import { tickEach } from "./room/timerService.js";
 import { handleChatMessage } from "./chat/chatService.js";
 import { broadcastMessage } from "./chat/chatEvents.js";
 import { getChatHistory } from "./chat/chatStore.js";
+import { canEndRoom, canPauseTimer, endRoom, pauseTimer, tryAdminPromote } from "./room/permissionService.js";
 
 const io = new Server({
   cors: {
@@ -20,10 +21,14 @@ setInterval(() => {
 
 io.on("connection", (socket) => {
   console.log("Connection with client established: ", socket.id);
-  setRoom("testroom", 20, 20, [{clientId: "test", displayName: "test1"}], "test1", 10, 10, "focus");
 
   socket.on("join-room", (joinInfo: JoinRoomPayload) => {
     const { displayName, roomCode, clientId } = joinInfo;
+
+    // if socket is already in room, stop StrictMode from rejoining for no reason
+    if (socket.rooms.has(roomCode)) {
+      return;
+    }
 
     // path if room is initially empty
     const initialRoomState = emptyRoomPath(joinInfo, socket);
@@ -33,23 +38,27 @@ io.on("connection", (socket) => {
       socket.data.roomCode = roomCode;
       socket.data.clientId = clientId;
       socket.data.displayName = displayName;
-      io.to(socket.id).emit("initial-info", initialRoomState);
+      socket.data.permission = "admin";
+      io.to(socket.id).emit("initial-info", { roomState: initialRoomState, permission: socket.data.permission });
       io.to(socket.id).emit("initial-messages", getChatHistory(roomCode));
+      console.log(`${displayName} joined an empty room`)
       return;
     }
     // ---
 
     // path if socket is rejoining existing room
     const roomData = getRoom(roomCode)!;
-    const rejoinedResult = rejoinRoomPath(roomData, clientId);
+    const rejoinedResult = rejoinRoomPath(roomData, roomCode, clientId);
 
     if (rejoinedResult) {
       socket.join(roomCode);
       socket.data.roomCode = roomCode;
       socket.data.clientId = clientId;
       socket.data.displayName = rejoinedResult.displayName;
-      io.to(socket.id).emit("initial-info", rejoinedResult.roomState);
+      socket.data.permission = rejoinedResult.permission;
+      io.to(socket.id).emit("initial-info", { roomState: rejoinedResult.roomState, permission: socket.data.permission });
       io.to(socket.id).emit("initial-messages", getChatHistory(roomCode));
+      console.log(`${displayName} rejoined a room`)
       return;
     }
     // ---
@@ -60,11 +69,55 @@ io.on("connection", (socket) => {
     socket.data.roomCode = roomCode;
     socket.data.clientId = clientId;
     socket.data.displayName = duplicateNameResult.assignedDisplayName;
+    socket.data.permission = "member";
     io.to(roomCode).emit("new-join", duplicateNameResult.updatedRoomMembers);
     io.to(socket.id).emit("initial-messages", getChatHistory(roomCode));
-    io.to(socket.id).emit("initial-info", duplicateNameResult.updatedRoomState);
+    io.to(socket.id).emit("initial-info", { roomState: duplicateNameResult.updatedRoomState, permission: socket.data.permission });
+    console.log(`${socket.data.displayName} joined a room with suffix name`)
     return;
     // ---
+  });
+
+  socket.on("pass-admin", async (newAdminData : RoomMember) => {
+    const promoteResult = await tryAdminPromote(socket, newAdminData.clientId, newAdminData.roomCode, newAdminData, io);
+    
+    if (!promoteResult || promoteResult.success === false) {
+      return;
+    }
+
+    io.to(newAdminData.roomCode).emit("new-admin-promotion", promoteResult.updatedRoomMembers);
+  });
+
+  socket.on("pause-timer", (roomCode : string) => {
+    const canPause = canPauseTimer(socket.data.permission);
+
+    if (!canPause) {
+      io.to(roomCode).emit("new-pause-request", { success: false });
+      return;
+    }
+
+    const pauseResult = pauseTimer(roomCode);
+    if (pauseResult === "fail") {
+      io.to(roomCode).emit("new-pause-request", { success: false });
+      return;
+    }
+
+    io.to(roomCode).emit("new-pause-request", {
+      success: true,
+      isPaused: pauseResult,
+    })
+  });
+
+  socket.on("end-room", (roomCode : string) => {
+    const canEnd = canEndRoom(socket.data.permission);
+
+    if (!canEnd) {
+      io.to(roomCode).emit("room-ending", { success: false });
+      return;
+    }
+
+    io.to(roomCode).emit("room-ending", { success: true });
+    endRoom(roomCode);
   });
 
   socket.on("leave-room", (leaveInfo: JoinRoomPayload) => {
