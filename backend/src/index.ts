@@ -1,6 +1,6 @@
 import { Server } from "socket.io";
 import type { ChatMessage, JoinRoomPayload, MessagePayload } from "../../shared/types.js";
-import { getRoom, setRoom } from "./room/roomStore.js";
+import { getRoom } from "./room/roomStore.js";
 import { disconnect, duplicateNamePath, emptyRoomPath, rejoinRoomPath, leaveRoom } from "./room/roomService.js";
 import { tickEach } from "./room/timerService.js";
 import { handleChatMessage } from "./chat/chatService.js";
@@ -47,13 +47,14 @@ io.on("connection", (socket) => {
 
     // path if socket is rejoining existing room
     const roomData = getRoom(roomCode)!;
-    const rejoinedResult = rejoinRoomPath(roomData, clientId);
+    const rejoinedResult = rejoinRoomPath(roomData, roomCode, clientId);
 
     if (rejoinedResult) {
       socket.join(roomCode);
       socket.data.roomCode = roomCode;
       socket.data.clientId = clientId;
       socket.data.displayName = rejoinedResult.displayName;
+      socket.data.permission = rejoinedResult.permission;
       io.to(socket.id).emit("initial-info", { roomState: rejoinedResult.roomState, permission: socket.data.permission });
       io.to(socket.id).emit("initial-messages", getChatHistory(roomCode));
       console.log(`${displayName} rejoined a room`)

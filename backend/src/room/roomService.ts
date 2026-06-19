@@ -3,6 +3,24 @@ import type { RoomState, RoomMember, JoinRoomPayload, Rejoin, DuplicateName } fr
 import type { Socket, Server } from "socket.io";
 import { getUniqueDisplayName } from "./displayName.js";
 
+const DISCONNECT_GRACE_MS = 3000;
+const pendingDisconnects = new Map<string, ReturnType<typeof setTimeout>>()
+
+function getDisconnectKey(roomCode : string, clientId: string) : string {
+  return `${roomCode}:${clientId}`
+}
+
+function cancelPendingDisconnect(roomCode : string, clientId : string) {
+  const key = getDisconnectKey(roomCode, clientId);
+  const timeout = pendingDisconnects.get(key);
+
+  if (timeout) {
+    clearTimeout(timeout);
+    pendingDisconnects.delete(key);
+  }
+}
+
+
 function getMemberIndex(roomMembers: RoomMember[], clientId: string) {
   return roomMembers.findIndex((member) => member.clientId === clientId);
 }
@@ -83,10 +101,12 @@ export function emptyRoomPath(joinInfo : JoinRoomPayload, socket : Socket) : Roo
     }
 }
 
-export function rejoinRoomPath(roomData : RoomState, clientId : string) : Rejoin | undefined {
+export function rejoinRoomPath(roomData : RoomState, roomCode: string, clientId : string) : Rejoin | undefined {
   const existingMemberIndex = getMemberIndex(roomData.roomMembers, clientId);
 
   if (existingMemberIndex !== -1) {
+    cancelPendingDisconnect(roomCode, clientId);
+
     const existingMember = roomData.roomMembers[existingMemberIndex];
     const rejoinedRoomState: RoomState = {
       ...roomData,
@@ -96,6 +116,7 @@ export function rejoinRoomPath(roomData : RoomState, clientId : string) : Rejoin
     return {
       roomState: rejoinedRoomState,
       displayName: existingMember?.displayName,
+      permission: existingMember?.permission,
     }
   }
   return;
@@ -136,9 +157,20 @@ export function disconnect(roomCode : string, clientId : string, socket : Socket
   if (!roomCode || !clientId) {
       return;
   }
-  removeAndBroadcast(roomCode, clientId, socket, io);
+
+  const key = getDisconnectKey(roomCode, clientId);
+  cancelPendingDisconnect(roomCode, clientId);
+
+  const timeout = setTimeout(() => {
+    pendingDisconnects.delete(key);
+    removeAndBroadcast(roomCode, clientId, socket, io);
+  }, DISCONNECT_GRACE_MS);
+
+  pendingDisconnects.set(key, timeout);
+
 }
 
 export function leaveRoom(leaveInfo : JoinRoomPayload, socket : Socket, io : Server) {
+  cancelPendingDisconnect(leaveInfo.roomCode, leaveInfo.clientId);
   removeAndBroadcast(leaveInfo.roomCode, leaveInfo.clientId, socket, io);
 }

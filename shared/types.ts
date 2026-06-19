@@ -31,6 +31,7 @@ export interface JoinRoomPayload {
 export interface Rejoin {
   roomState: RoomState;
   displayName: string | undefined;
+  permission: Permission | undefined;
 }
 
 export interface DuplicateName {
