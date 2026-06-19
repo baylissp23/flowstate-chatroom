@@ -1,6 +1,11 @@
+export type Permission =
+  | "admin"
+  | "member"
+
 export interface RoomMember {
   clientId : string;
   displayName : string;
+  permission : Permission;
 }
 
 export type Phase =

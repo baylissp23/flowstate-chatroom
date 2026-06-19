@@ -3,7 +3,12 @@ import { useParams } from "react-router-dom";
 import { socket } from "@/client/client";
 import { useNavigate } from "react-router-dom";
 import { getClientId } from "@/client/clientId";
-import type { ChatMessage, Phase, RoomMember } from "../../../shared/types";
+import type {
+  ChatMessage,
+  Permission,
+  Phase,
+  RoomMember,
+} from "../../../shared/types";
 import Timer from "@/components/Timer";
 import RoomRoster from "@/components/RoomRoster";
 import Container from "react-bootstrap/Container";
@@ -11,6 +16,7 @@ import Row from "react-bootstrap/Row";
 import Col from "react-bootstrap/Col";
 import Button from "react-bootstrap/Button";
 import Chat from "./Chat";
+import RoomSettings from "./RoomSettings";
 
 function Room() {
   const params = useParams();
@@ -25,6 +31,7 @@ function Room() {
   const [roomMembers, setRoomMembers] = useState<RoomMember[]>([]);
   const [initialMessages, setInitialMessages] = useState<ChatMessage[]>([]);
   const [chatPhase, setChatPhase] = useState<Phase>("focus");
+  const [permission, setPermission] = useState<Permission>("member");
 
   const navigate = useNavigate();
 
@@ -37,11 +44,12 @@ function Room() {
     });
 
     socket.on("initial-info", (roomStateData) => {
-      setTimer(roomStateData.current);
-      setMaxTimer(roomStateData.max);
-      setMaxBreakTimer(roomStateData.breakMax);
-      setDisplayName(roomStateData.assignedDisplayName);
-      setRoomMembers(roomStateData.roomMembers);
+      setTimer(roomStateData.roomState.current);
+      setMaxTimer(roomStateData.roomState.max);
+      setMaxBreakTimer(roomStateData.roomState.breakMax);
+      setDisplayName(roomStateData.roomState.assignedDisplayName);
+      setRoomMembers(roomStateData.roomState.roomMembers);
+      setPermission(roomStateData.permission);
     });
 
     socket.on("timer-tick", (roomStateData) => {
@@ -75,8 +83,14 @@ function Room() {
 
   return (
     <>
-      <h1>Room: {roomCode}</h1>
-      <p className="text-muted lead">Display Name: {displayName}</p>
+      <div className="d-flex justify-content-between align-items-center">
+        <h1>Room: {roomCode}</h1>
+        <RoomSettings permission={permission} />
+      </div>
+
+      <p className="text-muted lead">
+        Display Name: {displayName} ({permission})
+      </p>
       <Container fluid>
         <Row>
           <Col>

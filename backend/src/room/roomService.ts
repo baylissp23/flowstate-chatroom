@@ -62,7 +62,7 @@ export function emptyRoomPath(joinInfo : JoinRoomPayload, socket : Socket) : Roo
       const initialRoomState: RoomState = {
         current: 1500,
         max: 1500,
-        roomMembers: [{ clientId, displayName }],
+        roomMembers: [{ clientId: clientId, displayName: displayName, permission: "admin" }],
         assignedDisplayName: displayName,
         breakCurrent: 300,
         breakMax: 300,
@@ -103,9 +103,9 @@ export function rejoinRoomPath(roomData : RoomState, clientId : string) : Rejoin
 
 export function duplicateNamePath(roomData : RoomState, clientId : string, roomCode : string, displayName : string) : DuplicateName {
   const assignedDisplayName = getUniqueDisplayName(roomData.roomMembers, displayName);
-  const updatedRoomMembers = [
+  const updatedRoomMembers : RoomMember[] = [
     ...roomData.roomMembers,
-    { clientId, displayName: assignedDisplayName },
+    { clientId: clientId, displayName: assignedDisplayName, permission: "member" },
   ];
     
   const updatedRoomState: RoomState = {
