@@ -1,11 +1,12 @@
 import { Server } from "socket.io";
-import type { ChatMessage, JoinRoomPayload, MessagePayload } from "../../shared/types.js";
+import type { ChatMessage, JoinRoomPayload, MessagePayload, RoomMember } from "../../shared/types.js";
 import { getRoom } from "./room/roomStore.js";
 import { disconnect, duplicateNamePath, emptyRoomPath, rejoinRoomPath, leaveRoom } from "./room/roomService.js";
 import { tickEach } from "./room/timerService.js";
 import { handleChatMessage } from "./chat/chatService.js";
 import { broadcastMessage } from "./chat/chatEvents.js";
 import { getChatHistory } from "./chat/chatStore.js";
+import { tryAdminPromote } from "./room/permissionService.js";
 
 const io = new Server({
   cors: {
@@ -75,6 +76,16 @@ io.on("connection", (socket) => {
     console.log(`${socket.data.displayName} joined a room with suffix name`)
     return;
     // ---
+  });
+
+  socket.on("pass-admin", async (newAdminData : RoomMember) => {
+    const promoteResult = await tryAdminPromote(socket, newAdminData.clientId, newAdminData.roomCode, newAdminData, io);
+    
+    if (!promoteResult || promoteResult.success === false) {
+      return;
+    }
+
+    io.to(newAdminData.roomCode).emit("new-admin-promotion", promoteResult.updatedRoomMembers);
   });
 
   socket.on("leave-room", (leaveInfo: JoinRoomPayload) => {

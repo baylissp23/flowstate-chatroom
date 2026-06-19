@@ -6,6 +6,7 @@ export interface RoomMember {
   clientId : string;
   displayName : string;
   permission : Permission;
+  roomCode : string;
 }
 
 export type Phase =
@@ -50,3 +51,10 @@ export interface ChatMessage {
 export interface MessagePayload {
   text : string;
 }
+
+export type AdminPromoteResult =
+  | { success: false }
+  | {
+    success: true;
+    updatedRoomMembers: RoomMember[];
+  }

@@ -1,6 +1,6 @@
 import { getRoom, deleteRoom, setRoom } from "./roomStore.js";
-import type { RoomState, RoomMember, JoinRoomPayload, Rejoin, DuplicateName } from "../../../shared/types.js";
-import type { Socket, Server } from "socket.io";
+import type { RoomState, RoomMember, JoinRoomPayload, Rejoin, DuplicateName, Permission } from "../../../shared/types.js";
+import type { Socket, Server, RemoteSocket } from "socket.io";
 import { getUniqueDisplayName } from "./displayName.js";
 
 const DISCONNECT_GRACE_MS = 3000;
@@ -80,7 +80,7 @@ export function emptyRoomPath(joinInfo : JoinRoomPayload, socket : Socket) : Roo
       const initialRoomState: RoomState = {
         current: 1500,
         max: 1500,
-        roomMembers: [{ clientId: clientId, displayName: displayName, permission: "admin" }],
+        roomMembers: [{ clientId: clientId, displayName: displayName, permission: "admin", roomCode: roomCode }],
         assignedDisplayName: displayName,
         breakCurrent: 300,
         breakMax: 300,
@@ -126,7 +126,7 @@ export function duplicateNamePath(roomData : RoomState, clientId : string, roomC
   const assignedDisplayName = getUniqueDisplayName(roomData.roomMembers, displayName);
   const updatedRoomMembers : RoomMember[] = [
     ...roomData.roomMembers,
-    { clientId: clientId, displayName: assignedDisplayName, permission: "member" },
+    { clientId: clientId, displayName: assignedDisplayName, permission: "member", roomCode: roomCode },
   ];
     
   const updatedRoomState: RoomState = {
@@ -174,3 +174,47 @@ export function leaveRoom(leaveInfo : JoinRoomPayload, socket : Socket, io : Ser
   cancelPendingDisconnect(leaveInfo.roomCode, leaveInfo.clientId);
   removeAndBroadcast(leaveInfo.roomCode, leaveInfo.clientId, socket, io);
 }
+
+export async function setClientPermission(
+  roomCode: string,
+  clientId: string,
+  permission: Permission,
+  io: Server,
+) {
+  const roomSockets = await io.in(roomCode).fetchSockets();
+  const targetSocket = roomSockets.find((socket) => socket.data.clientId === clientId);
+
+  if (!targetSocket) {
+    return;
+  }
+
+  targetSocket.data.permission = permission;
+}
+
+export function setRoomMemberPermission(roomCode : string, clientId : string, permission: Permission) : boolean {
+  const room = getRoom(roomCode);
+
+  if (!room) {
+    return false;
+  }
+
+  const updatedRoomMembers = room.roomMembers.map((member) =>
+    member.clientId === clientId
+      ? { ...member, permission }
+      : member,
+  );
+
+  setRoom(
+    roomCode,
+    room.current,
+    room.max,
+    updatedRoomMembers,
+    room.assignedDisplayName,
+    room.breakCurrent,
+    room.breakMax,
+    room.phase,
+  );
+
+  return true;
+}
+

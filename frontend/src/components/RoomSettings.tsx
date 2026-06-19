@@ -1,27 +1,46 @@
 import Button from "react-bootstrap/Button";
-import type { Permission } from "../../../shared/types";
+import type { Permission, RoomMember } from "../../../shared/types";
+import { socket } from "@/client/client";
+import PassAdmin from "./PassAdmin";
 
 interface RoomSettingsProps {
   permission: Permission;
+  roomMembers: RoomMember[];
 }
 
-function RoomSettings({ permission }: RoomSettingsProps) {
+function RoomSettings({ permission, roomMembers }: RoomSettingsProps) {
   const decideButtons = () => {
     if (permission === "admin") {
       return (
         <>
           <div>
             <span className="text-muted lead me-3">Admin Actions:</span>
-            <Button variant="primary" className="mx-1">
+            <Button
+              variant="primary"
+              className="mx-1"
+              onClick={() => {
+                socket.emit("start-focus");
+              }}
+            >
               Start Focus
             </Button>
-            <Button variant="warning" className="mx-1">
+            <Button
+              variant="warning"
+              className="mx-1"
+              onClick={() => {
+                socket.emit("pause-timer");
+              }}
+            >
               Pause
             </Button>
-            <Button variant="secondary" className="mx-1">
-              Pass Admin
-            </Button>
-            <Button variant="danger" className="mx-1">
+            <PassAdmin roomMembers={roomMembers} />
+            <Button
+              variant="danger"
+              className="mx-1"
+              onClick={() => {
+                socket.emit("end-room");
+              }}
+            >
               End Room
             </Button>
           </div>

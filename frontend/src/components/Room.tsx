@@ -58,6 +58,19 @@ function Room() {
       setChatPhase(roomStateData.phase);
     });
 
+    socket.on("new-admin-promotion", (newRoomMembers) => {
+      setRoomMembers(newRoomMembers);
+
+      const myClientId = getClientId();
+      const myMember = newRoomMembers.find(
+        (member: RoomMember) => member.clientId === myClientId,
+      );
+
+      if (myMember) {
+        setPermission(myMember.permission);
+      }
+    });
+
     socket.on("new-join", (roomMembersData) => {
       setRoomMembers(roomMembersData);
     });
@@ -78,6 +91,7 @@ function Room() {
       socket.off("new-join");
       socket.off("member-left");
       socket.off("initial-messages");
+      socket.off("new-admin-promotion");
     };
   }, [roomCode]);
 
@@ -85,7 +99,7 @@ function Room() {
     <>
       <div className="d-flex justify-content-between align-items-center">
         <h1>Room: {roomCode}</h1>
-        <RoomSettings permission={permission} />
+        <RoomSettings permission={permission} roomMembers={roomMembers} />
       </div>
 
       <p className="text-muted lead">
