@@ -6,7 +6,7 @@ import { tickEach } from "./room/timerService.js";
 import { handleChatMessage } from "./chat/chatService.js";
 import { broadcastMessage } from "./chat/chatEvents.js";
 import { getChatHistory } from "./chat/chatStore.js";
-import { canPauseTimer, pauseTimer, tryAdminPromote } from "./room/permissionService.js";
+import { canEndRoom, canPauseTimer, endRoom, pauseTimer, tryAdminPromote } from "./room/permissionService.js";
 
 const io = new Server({
   cors: {
@@ -106,8 +106,18 @@ io.on("connection", (socket) => {
       success: true,
       isPaused: pauseResult,
     })
+  });
 
+  socket.on("end-room", (roomCode : string) => {
+    const canEnd = canEndRoom(socket.data.permission);
 
+    if (!canEnd) {
+      io.to(roomCode).emit("room-ending", { success: false });
+      return;
+    }
+
+    io.to(roomCode).emit("room-ending", { success: true });
+    endRoom(roomCode);
   });
 
   socket.on("leave-room", (leaveInfo: JoinRoomPayload) => {

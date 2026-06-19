@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { getClientId } from "@/client/clientId";
 import type {
   ChatMessage,
+  EndRoomResult,
   PauseTimerResult,
   Permission,
   Phase,
@@ -26,7 +27,7 @@ function Room() {
 
   const [displayName, setDisplayName] = useState<string>("");
   const [timer, setTimer] = useState<number>(0);
-  const [timerPaused, setTimerPaused] = useState(false);
+  const [timerPaused, setTimerPaused] = useState(true);
   const [maxTimer, setMaxTimer] = useState<number>(1);
   const [breakTimer, setBreakTimer] = useState<number>(0);
   const [maxBreakTimer, setMaxBreakTimer] = useState<number>(1);
@@ -80,6 +81,13 @@ function Room() {
       setTimerPaused(pauseTimerResult.isPaused);
     });
 
+    socket.on("room-ending", (roomEndResult: EndRoomResult) => {
+      if (!roomEndResult.success) {
+        return;
+      }
+      navigate("/");
+    });
+
     socket.on("new-join", (roomMembersData) => {
       setRoomMembers(roomMembersData);
     });
@@ -101,8 +109,10 @@ function Room() {
       socket.off("member-left");
       socket.off("initial-messages");
       socket.off("new-admin-promotion");
+      socket.off("room-ending");
+      socket.off("new-pause-request");
     };
-  }, [roomCode]);
+  }, [roomCode, navigate]);
 
   return (
     <>

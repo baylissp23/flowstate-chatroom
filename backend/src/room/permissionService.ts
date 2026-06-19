@@ -1,6 +1,6 @@
 import type { Server, Socket } from "socket.io";
 import type { AdminPromoteResult, Permission, RoomMember } from "../../../shared/types.js";
-import { getRoom, setRoom } from "./roomStore.js";
+import { deleteRoom, getRoom, setRoom } from "./roomStore.js";
 import { setClientPermission, setRoomMemberPermission } from "./roomService.js";
 
 export async function tryAdminPromote(sourceSocket : Socket, targetClientId : string, roomCode : string, member : RoomMember, io : Server) : Promise<AdminPromoteResult | undefined> {
@@ -107,4 +107,21 @@ export function pauseTimer(roomCode : string) : boolean | "fail" {
     true, // set isPaused to true in room state
   );
   return true;
+}
+
+export function canEndRoom(socketPermission : string) : boolean {
+  if (socketPermission === "admin") {
+    return true;
+  }
+  return false;
+}
+
+export function endRoom(roomCode : string) {
+  const room = getRoom(roomCode);
+
+  if (!room) {
+    return "fail";
+  }
+
+  deleteRoom(roomCode);
 }

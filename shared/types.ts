@@ -66,3 +66,7 @@ export type PauseTimerResult =
     success: true;
     isPaused: boolean;
   }
+
+export interface EndRoomResult {
+  success: boolean;
+}

@@ -36,7 +36,7 @@ function RoomSettings({
               variant="danger"
               className="mx-1"
               onClick={() => {
-                socket.emit("end-room");
+                socket.emit("end-room", roomCode);
               }}
             >
               End Room
