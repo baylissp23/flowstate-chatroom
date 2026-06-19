@@ -21,12 +21,15 @@ I also implemented a brief fix – I noticed that when an admin user refreshes t
 
 Hacking the chat field by simply changing the `textarea`'s `disabled` field is still a known issue which I need to get around to fixing.
 
+Another known issue: if the room admin leaves, it is not currently passed to a new user.
+
 **TLDR:**
 
 - Added "admin" and "member" permissions to rooms
 - Added admin actions allowing admins to start and pause the timer, pass admin status, and end rooms
 - Fixed admin status being lost when you refresh a room
 - Hacking the chat field with a simple Inspect is still a known issue
+- Admin status not being automatically passed on when admin leaves is a known issue
 - MVP complete!
 
 ### History
