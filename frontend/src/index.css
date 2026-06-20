@@ -6,12 +6,12 @@
 .navbar-pulse::after {
   content: "";
   position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  height: 2px;
-  background: darkslategray;
+  inset: 0;
+  border-radius: inherit;
+  border: 1px solid rgba(13, 110, 253, 0.55);
+  box-shadow: 0 0 14px rgba(13, 110, 253, 0.35);
   animation: navbarPulse 4s ease-in-out infinite;
+  pointer-events: none;
 }
 
 @keyframes navbarPulse {
@@ -21,4 +21,91 @@
   50% {
     opacity: 1;
   }
+}
+
+.text-gradient-blue {
+  background: linear-gradient(90deg, #0d6efd 0%, #00d2ff 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  color: transparent;
+  display: inline-block; 
+
+  filter: drop-shadow(0px 4px 8px rgba(0, 210, 255, 0.3)); 
+}
+
+.ui-screenshot {
+  box-shadow: 0 20px 40px rgba(255,255,255,0)
+}
+
+.bento-card {
+  background-color: #1a1a21 !important; 
+  border: 1px solid rgba(255, 255, 255, 0.05) !important;
+  border-radius: 20px !important;
+}
+
+.bento-icon-box {
+  width: 48px;
+  height: 48px;
+  background-color: rgba(13, 110, 253, 0.15);
+  border-radius: 12px;
+}
+
+.home-footer {
+  background: #111827;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 -4px 18px rgba(0, 0, 0, 0.2);
+  width: 100%;
+}
+
+.home-footer-inner {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 0.875rem;
+}
+
+.mockup-container {
+  max-height: calc(100vh - 220px);
+  overflow: hidden;
+}
+
+.navbar-pill {
+  position: sticky;
+  top: 0.5rem;
+  z-index: 1030;
+  width: calc(100% - 2rem);
+  margin: 0.5rem auto 0;
+  border-radius: 999px;
+  border: 1px solid rgba(13, 110, 253, 0.22);
+  background: linear-gradient(
+    135deg,
+    rgba(17, 24, 39, 0.82),
+    rgba(10, 14, 26, 0.68)
+  );
+  backdrop-filter: blur(18px) saturate(160%);
+  -webkit-backdrop-filter: blur(18px) saturate(160%);
+  box-shadow:
+    0 12px 30px rgba(0, 0, 0, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.navbar-pill .navbar-toggler {
+  border-radius: 999px;
+}
+
+.navbar-pill .navbar-brand,
+.navbar-pill .nav-link {
+  color: rgba(255, 255, 255, 0.88);
+}
+
+.navbar-pill .nav-link.active {
+  color: #0d6efd;
+}
+
+.room-panel {
+  background-color: #1a1a21 !important; 
+  border: 1px solid rgba(255, 255, 255, 0.05) !important;
+  border-radius: 20px !important;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.18);
 }

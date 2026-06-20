@@ -23,7 +23,7 @@ function RoomSettings({
           <div>
             <span className="text-muted lead me-3">Admin Actions:</span>
             <Button
-              variant="warning"
+              variant="primary"
               className="mx-1 rounded-pill"
               onClick={() => {
                 socket.emit("pause-timer", roomCode);

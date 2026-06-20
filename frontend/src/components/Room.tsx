@@ -112,62 +112,73 @@ function Room() {
 
   return (
     <>
-      <div className="d-flex justify-content-between align-items-center">
-        <h1>Room: {roomCode}</h1>
-        <RoomSettings
-          permission={permission}
-          roomMembers={roomMembers}
-          roomCode={roomCode!}
-          timerIsPaused={timerPaused}
-        />
-      </div>
-
-      <p className="text-muted lead">
-        Display Name: {displayName} ({permission})
-      </p>
-      <Container fluid>
-        <div className="d-flex flex-row justify-content-center align-items-center w-100 gap-3">
-          <div className="w-100 flex-fill">
-            <Timer timer={timer} timerType="focus" />
-          </div>
-          <div className="w-100 flex-fill">
-            <Timer timer={breakTimer} timerType="break" />
-          </div>
-        </div>
-
-        <div className="my-4">
-          <Row className="align-items-stretch">
-            <Col xs={12} md={2} className="d-flex">
-              <RoomRoster roomMembers={roomMembers} thisUser={displayName} />
-            </Col>
-            <Col xs={12} md={10} className="d-flex">
-              <Chat
-                displayName={displayName}
-                initialMessages={initialMessages}
-                key={`${roomCode}-${initialMessages.length}`}
-                phase={chatPhase}
+      <div className="mt-5">
+        <div className="mx-4">
+          <div className="d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <h1 className="display-4 fw-bold mb-0">Room: {roomCode}</h1>
+            <div>
+              <RoomSettings
+                permission={permission}
+                roomMembers={roomMembers}
+                roomCode={roomCode!}
+                timerIsPaused={timerPaused}
               />
-            </Col>
-          </Row>
-        </div>
+            </div>
+          </div>
 
-        <div className="d-flex justify-content-end">
-          <Button
-            variant="danger"
-            onClick={() => {
-              socket.emit("leave-room", {
-                displayName: displayName,
-                roomCode: roomCode,
-                clientId: getClientId(),
-              });
-              navigate("/");
-            }}
-            className="mb-4"
-          >
-            Leave
-          </Button>
+          <p className="text-muted lead">
+            Display Name: {displayName} ({permission})
+          </p>
         </div>
-      </Container>
+        <div className="mt-4">
+          <Container fluid>
+            <div className="d-flex flex-row justify-content-center align-items-center w-100 gap-3">
+              <div className="w-100 flex-fill">
+                <Timer timer={timer} timerType="focus" />
+              </div>
+              <div className="w-100 flex-fill">
+                <Timer timer={breakTimer} timerType="break" />
+              </div>
+            </div>
+
+            <div className="my-4">
+              <Row className="align-items-stretch">
+                <Col xs={12} md={2} className="d-flex">
+                  <RoomRoster
+                    roomMembers={roomMembers}
+                    thisUser={displayName}
+                  />
+                </Col>
+                <Col xs={12} md={10} className="d-flex">
+                  <Chat
+                    displayName={displayName}
+                    initialMessages={initialMessages}
+                    key={`${roomCode}-${initialMessages.length}`}
+                    phase={chatPhase}
+                  />
+                </Col>
+              </Row>
+            </div>
+
+            <div className="d-flex justify-content-end">
+              <Button
+                variant="danger"
+                onClick={() => {
+                  socket.emit("leave-room", {
+                    displayName: displayName,
+                    roomCode: roomCode,
+                    clientId: getClientId(),
+                  });
+                  navigate("/");
+                }}
+                className="mb-4"
+              >
+                Leave
+              </Button>
+            </div>
+          </Container>
+        </div>
+      </div>
     </>
   );
 }

@@ -64,7 +64,7 @@ function Chat({ displayName, initialMessages, phase }: ChatProps) {
   };
 
   return (
-    <Container fluid className="border-0 rounded-4 bg-dark shadow">
+    <Container fluid className="room-panel text-light">
       <h1>Chat</h1>
       <hr className="border opacity-100"></hr>
       <Container fluid>

@@ -11,7 +11,7 @@ function Join() {
 
   return (
     <>
-      <Container fluid>
+      <Container fluid className="mt-5">
         <h1>Join a Room</h1>
 
         <Form

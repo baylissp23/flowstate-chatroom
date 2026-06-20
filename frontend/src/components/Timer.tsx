@@ -33,7 +33,7 @@ function Timer({ timer, timerType }: TimerProps) {
 
   return (
     <>
-      <Card className="shadow bg-dark border-0 rounded-4 overflow-hidden mb-2">
+      <Card className="shadow bento-card navbar-pulse">
         <Card.Body>
           <div className="d-flex justify-content-center">
             <h1

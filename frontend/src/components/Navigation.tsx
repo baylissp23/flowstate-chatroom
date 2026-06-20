@@ -2,12 +2,14 @@ import Navbar from "react-bootstrap/Navbar";
 import Nav from "react-bootstrap/Nav";
 import Container from "react-bootstrap/Container";
 import { NavLink, Link } from "react-router-dom";
+import { Infinity as InfinityIcon } from "react-bootstrap-icons";
 
 function Navigation() {
   return (
-    <Navbar expand="lg" className="bg-dark mb-4 navbar-pulse">
+    <Navbar expand="lg" className="bg-dark navbar-pill navbar-pulse">
       <Container fluid>
-        <Navbar.Brand as={Link} to="/">
+        <Navbar.Brand as={Link} to="/" className="fw-bold">
+          <InfinityIcon className="me-2 text-primary" />
           FlowState
         </Navbar.Brand>
 
