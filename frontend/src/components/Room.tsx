@@ -14,11 +14,11 @@ import type {
 import Timer from "@/components/Timer";
 import RoomRoster from "@/components/RoomRoster";
 import Container from "react-bootstrap/Container";
-import Row from "react-bootstrap/Row";
-import Col from "react-bootstrap/Col";
 import Button from "react-bootstrap/Button";
 import Chat from "./Chat";
 import RoomSettings from "./RoomSettings";
+import Row from "react-bootstrap/Row";
+import Col from "react-bootstrap/Col";
 
 function Room() {
   const params = useParams();
@@ -28,9 +28,7 @@ function Room() {
   const [displayName, setDisplayName] = useState<string>("");
   const [timer, setTimer] = useState<number>(0);
   const [timerPaused, setTimerPaused] = useState(true);
-  const [maxTimer, setMaxTimer] = useState<number>(1);
   const [breakTimer, setBreakTimer] = useState<number>(0);
-  const [maxBreakTimer, setMaxBreakTimer] = useState<number>(1);
   const [roomMembers, setRoomMembers] = useState<RoomMember[]>([]);
   const [initialMessages, setInitialMessages] = useState<ChatMessage[]>([]);
   const [chatPhase, setChatPhase] = useState<Phase>("focus");
@@ -48,8 +46,6 @@ function Room() {
 
     socket.on("initial-info", (roomStateData) => {
       setTimer(roomStateData.roomState.current);
-      setMaxTimer(roomStateData.roomState.max);
-      setMaxBreakTimer(roomStateData.roomState.breakMax);
       setDisplayName(roomStateData.roomState.assignedDisplayName);
       setRoomMembers(roomStateData.roomState.roomMembers);
       setPermission(roomStateData.permission);
@@ -130,35 +126,47 @@ function Room() {
         Display Name: {displayName} ({permission})
       </p>
       <Container fluid>
-        <Row>
-          <Col>
-            <Timer timer={timer} maxTime={maxTimer} />
-            <Timer timer={breakTimer} maxTime={maxBreakTimer} />
-          </Col>
-          <Col>
-            <RoomRoster roomMembers={roomMembers} thisUser={displayName} />
-          </Col>
-        </Row>
-        <Chat
-          displayName={displayName}
-          initialMessages={initialMessages}
-          key={`${roomCode}-${initialMessages.length}`}
-          phase={chatPhase}
-        />
-        <Button
-          variant="danger"
-          onClick={() => {
-            socket.emit("leave-room", {
-              displayName: displayName,
-              roomCode: roomCode,
-              clientId: getClientId(),
-            });
-            navigate("/");
-          }}
-          className="mb-4"
-        >
-          Leave
-        </Button>
+        <div className="d-flex flex-row justify-content-center align-items-center w-100 gap-3">
+          <div className="w-100 flex-fill">
+            <Timer timer={timer} />
+          </div>
+          <div className="w-100 flex-fill">
+            <Timer timer={breakTimer} />
+          </div>
+        </div>
+
+        <div className="my-4">
+          <Row className="align-items-stretch">
+            <Col xs={12} md={2} className="d-flex">
+              <RoomRoster roomMembers={roomMembers} thisUser={displayName} />
+            </Col>
+            <Col xs={12} md={10} className="d-flex">
+              <Chat
+                displayName={displayName}
+                initialMessages={initialMessages}
+                key={`${roomCode}-${initialMessages.length}`}
+                phase={chatPhase}
+              />
+            </Col>
+          </Row>
+        </div>
+
+        <div className="d-flex justify-content-end">
+          <Button
+            variant="danger"
+            onClick={() => {
+              socket.emit("leave-room", {
+                displayName: displayName,
+                roomCode: roomCode,
+                clientId: getClientId(),
+              });
+              navigate("/");
+            }}
+            className="mb-4"
+          >
+            Leave
+          </Button>
+        </div>
       </Container>
     </>
   );

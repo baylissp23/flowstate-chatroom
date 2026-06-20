@@ -24,7 +24,7 @@ function RoomSettings({
             <span className="text-muted lead me-3">Admin Actions:</span>
             <Button
               variant="warning"
-              className="mx-1"
+              className="mx-1 rounded-pill"
               onClick={() => {
                 socket.emit("pause-timer", roomCode);
               }}
@@ -34,7 +34,7 @@ function RoomSettings({
             <PassAdmin roomMembers={roomMembers} />
             <Button
               variant="danger"
-              className="mx-1"
+              className="mx-1 rounded-pill"
               onClick={() => {
                 socket.emit("end-room", roomCode);
               }}

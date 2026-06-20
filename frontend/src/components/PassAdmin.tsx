@@ -17,7 +17,11 @@ function PassAdmin({ roomMembers }: PassAdminProps) {
 
   return (
     <>
-      <Button variant="secondary" className="mx-1" onClick={handleShow}>
+      <Button
+        variant="secondary"
+        className="mx-1 rounded-pill"
+        onClick={handleShow}
+      >
         Pass Admin
       </Button>
 

@@ -1,16 +1,12 @@
 import Card from "react-bootstrap/Card";
-import ProgressBar from "react-bootstrap/ProgressBar";
 
 interface TimerProps {
   timer: number;
-  maxTime: number;
 }
 
-function Timer({ timer, maxTime }: TimerProps) {
+function Timer({ timer }: TimerProps) {
   const minutes = Math.floor(timer / 60);
   const seconds = timer % 60;
-
-  const progressPercentage = (timer / maxTime) * 100;
 
   const minutesSeconds = () => {
     let formattedMinutes;
@@ -33,7 +29,7 @@ function Timer({ timer, maxTime }: TimerProps) {
 
   return (
     <>
-      <Card className="shadow-sm">
+      <Card className="shadow bg-dark border-0 rounded-4 overflow-hidden mb-2">
         <Card.Body>
           <div className="d-flex justify-content-center">
             <h1
@@ -45,14 +41,6 @@ function Timer({ timer, maxTime }: TimerProps) {
             </h1>
           </div>
         </Card.Body>
-        <Card.Footer>
-          <ProgressBar
-            animated
-            now={progressPercentage}
-            variant="primary"
-            style={{ height: "10px" }}
-          ></ProgressBar>
-        </Card.Footer>
       </Card>
     </>
   );

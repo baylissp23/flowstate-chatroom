@@ -64,16 +64,13 @@ function Chat({ displayName, initialMessages, phase }: ChatProps) {
   };
 
   return (
-    <Container
-      fluid
-      className="border border-dark border-2 rounded-3 mt-4 mb-2 bg-light shadow"
-    >
-      <h1 className="mt-2">Chat</h1>
-      <hr className="border border-dark opacity-25 mx-3 my-4"></hr>
+    <Container fluid className="border-0 rounded-4 bg-dark shadow">
+      <h1>Chat</h1>
+      <hr className="border opacity-100"></hr>
       <Container fluid>
         <div
-          className="overflow-auto"
-          style={{ maxHeight: "30rem" }}
+          className="overflow-auto border-0"
+          style={{ maxHeight: "30rem", minHeight: "30rem" }}
           ref={scrollContainerRef}
           onScroll={handleScroll}
         >
