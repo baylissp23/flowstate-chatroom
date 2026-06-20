@@ -11,7 +11,29 @@ FlowState is a collaborative work-sessions platform that I am currently building
 
 ## Devlog
 
-### V6 - Admin Permissions and MVP Complete!
+### V7 - UI Rework and Bug Hunting
+
+Today I did some work on making FlowState feel more like a collaborative productivity platform. While I was originally planning on using `tailwindcss` with the `shadcn` components library to do this, I decided to just fiddle around with Bootstrap a little bit. The UI now has a nice dark mode feel with blue accents. I used AI models quite a bit to help me through creating complicated CSS, like text gradients, breathing borders, and the floating pill navbar, since I have little knowledge of creating custom styles. There is still some work to do (especially with keeping the app responsive on smaller screens), but overall, the app looks a lot nicer and much more cohesive!
+
+I also did a little bug hunting, and I've collated together a list of bugs that I will be fixing over the next little while:
+
+- When an admin user ends a room and someone else joins a new room with the same room code as the deleted room, the timer will not start correctly.
+- Chat function can be hacked with a simple Inspect, allowing users to chat without break phase. This has been unintentionally useful when I want to test things related to the chat, but I will be fixing this before deployment.
+- "Start" and "Pause" states on the related admin action button sometimes get swapped.
+
+There are probably more bugs I have missed, and I will be hunting for more while I continue to develop FlowState to ensure the platform is as robust as possible before deployment.
+
+**TLDR:**
+
+- UI rework completed with Bootstrap (originally planned to use tailwind); new dark-charcoal + blue theme
+- Found new bugs that need to be fixed
+- Continually working on finding other bugs in the application, staying vigilant!
+
+### History
+
+<details>
+
+<summary><b>V6 - Admin Permissions and MVP Complete!</b></summary>
 
 Today finally marks the completion of the initial Minimum Viable Product I set out for FlowState. I implemented some of my original plans a bit differently than I expected to, but overall, FlowState is now at stage where it has some proper utility.
 
@@ -32,7 +54,7 @@ Another known issue: if the room admin leaves, it is not currently passed to a n
 - Admin status not being automatically passed on when admin leaves is a known issue
 - MVP complete!
 
-### History
+</details>
 
 <details>
 
