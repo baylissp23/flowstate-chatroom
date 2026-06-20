@@ -109,3 +109,8 @@
   border-radius: 20px !important;
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.18);
 }
+
+.join-card {
+  width: 100%;
+  max-width: 620px;
+}

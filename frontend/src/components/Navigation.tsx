@@ -19,7 +19,7 @@ function Navigation() {
             <Nav.Link as={NavLink} to="/">
               Home
             </Nav.Link>
-            <Nav.Link as={NavLink} to="/join">
+            <Nav.Link as={Link} to="/#join-card">
               Join
             </Nav.Link>
             <Nav.Link as={NavLink} to="/create">
