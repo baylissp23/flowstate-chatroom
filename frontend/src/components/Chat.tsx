@@ -76,7 +76,7 @@ function Chat({ displayName, initialMessages, phase }: ChatProps) {
         >
           {messages.map((message) => {
             return (
-              <Card className="my-4" key={message.id}>
+              <Card className="my-4 rounded-4 overflow-hidden" key={message.id}>
                 <Card.Header>
                   {message.sender === displayName ? (
                     <span className="text-primary">{message.sender} (Me)</span>
@@ -119,7 +119,11 @@ function Chat({ displayName, initialMessages, phase }: ChatProps) {
             name="messageText"
             disabled={chatLocked()}
           ></Form.Control>
-          <Button type="submit" variant="primary" className="mx-2 mb-2">
+          <Button
+            type="submit"
+            variant="primary"
+            className="mx-2 mb-2 rounded-3"
+          >
             Send
           </Button>
         </InputGroup>

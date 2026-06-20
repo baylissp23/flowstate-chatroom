@@ -5,12 +5,7 @@ import { NavLink, Link } from "react-router-dom";
 
 function Navigation() {
   return (
-    <Navbar
-      bg="dark"
-      variant="dark"
-      expand="lg"
-      className="mb-4 border-bottom border-primary shadow-sm"
-    >
+    <Navbar expand="lg" className="bg-dark mb-4 navbar-pulse">
       <Container fluid>
         <Navbar.Brand as={Link} to="/">
           FlowState

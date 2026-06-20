@@ -128,10 +128,10 @@ function Room() {
       <Container fluid>
         <div className="d-flex flex-row justify-content-center align-items-center w-100 gap-3">
           <div className="w-100 flex-fill">
-            <Timer timer={timer} />
+            <Timer timer={timer} timerType="focus" />
           </div>
           <div className="w-100 flex-fill">
-            <Timer timer={breakTimer} />
+            <Timer timer={breakTimer} timerType="break" />
           </div>
         </div>
 

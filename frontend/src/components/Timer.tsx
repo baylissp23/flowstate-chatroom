@@ -1,10 +1,12 @@
 import Card from "react-bootstrap/Card";
+import { LightningCharge, CupHot } from "react-bootstrap-icons";
 
 interface TimerProps {
   timer: number;
+  timerType: "break" | "focus";
 }
 
-function Timer({ timer }: TimerProps) {
+function Timer({ timer, timerType }: TimerProps) {
   const minutes = Math.floor(timer / 60);
   const seconds = timer % 60;
 
@@ -27,6 +29,8 @@ function Timer({ timer }: TimerProps) {
     return formattedMinutes + " : " + formattedSeconds;
   };
 
+  const TimerIcon = timerType === "break" ? CupHot : LightningCharge;
+
   return (
     <>
       <Card className="shadow bg-dark border-0 rounded-4 overflow-hidden mb-2">
@@ -39,6 +43,10 @@ function Timer({ timer }: TimerProps) {
             >
               {minutesSeconds()}
             </h1>
+            <TimerIcon
+              className="mx-3"
+              style={{ color: timerType === "break" ? "#ae642e" : "#FFED29" }}
+            />
           </div>
         </Card.Body>
       </Card>
