@@ -117,6 +117,7 @@ io.on("connection", (socket) => {
     }
 
     io.to(roomCode).emit("room-ending", { success: true });
+    io.in(roomCode).socketsLeave(roomCode);
     endRoom(roomCode);
   });
 
