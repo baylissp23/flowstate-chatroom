@@ -17,9 +17,9 @@ Today I did some work on making FlowState feel more like a collaborative product
 
 I also did a little bug hunting, and I've collated together a list of bugs that I will be fixing over the next little while:
 
-- When an admin user ends a room and someone else joins a new room with the same room code as the deleted room, the timer will not start correctly.
+- ~~When an admin user ends a room and someone else joins a new room with the same room code as the deleted room, the timer will not start correctly.~~
 - Chat function can be hacked with a simple Inspect, allowing users to chat without break phase. This has been unintentionally useful when I want to test things related to the chat, but I will be fixing this before deployment.
-- "Start" and "Pause" states on the related admin action button sometimes get swapped.
+- ~~"Start" and "Pause" states on the related admin action button sometimes get swapped.~~
 
 There are probably more bugs I have missed, and I will be hunting for more while I continue to develop FlowState to ensure the platform is as robust as possible before deployment.
 
