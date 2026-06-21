@@ -2,6 +2,7 @@ import { getRoom, deleteRoom, setRoom } from "./roomStore.js";
 import type { RoomState, RoomMember, JoinRoomPayload, Rejoin, DuplicateName, Permission } from "../../../shared/types.js";
 import type { Socket, Server, RemoteSocket } from "socket.io";
 import { getUniqueDisplayName } from "./displayName.js";
+import { deleteChatHistory } from "../chat/chatStore.js";
 
 const DISCONNECT_GRACE_MS = 3000;
 const pendingDisconnects = new Map<string, ReturnType<typeof setTimeout>>()
@@ -45,6 +46,7 @@ export function removeAndBroadcast(roomCode : string, clientId : string, socket 
 
   if (updatedRoomMembers.length === 0) {
     deleteRoom(roomCode);
+    deleteChatHistory(roomCode);
     return;
   }
 

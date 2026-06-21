@@ -5,7 +5,7 @@ import { disconnect, duplicateNamePath, emptyRoomPath, rejoinRoomPath, leaveRoom
 import { tickEach } from "./room/timerService.js";
 import { handleChatMessage } from "./chat/chatService.js";
 import { broadcastMessage } from "./chat/chatEvents.js";
-import { getChatHistory } from "./chat/chatStore.js";
+import { deleteChatHistory, getChatHistory } from "./chat/chatStore.js";
 import { canEndRoom, canPauseTimer, endRoom, pauseTimer, tryAdminPromote } from "./room/permissionService.js";
 
 const io = new Server({
@@ -116,13 +116,25 @@ io.on("connection", (socket) => {
       return;
     }
 
-    io.to(roomCode).emit("room-ending", { success: true });
-    io.in(roomCode).socketsLeave(roomCode);
-    endRoom(roomCode);
+    io.to(socket.data.roomCode).emit("room-ending", { success: true });
+    io.in(socket.data.roomCode).socketsLeave(socket.data.roomCode);
+    endRoom(socket.data.roomCode);
+    deleteChatHistory(socket.data.roomCode);
   });
 
   socket.on("leave-room", (leaveInfo: JoinRoomPayload) => {
     leaveRoom(leaveInfo, socket, io);
+
+    const room = getRoom(socket.data.roomCode);
+
+    if (!room) {
+      return;
+    }
+
+    if (room.roomMembers.length <= 0) {
+      io.in(socket.data.roomCode).socketsLeave(socket.data.roomCode);
+      deleteChatHistory(socket.data.roomCode);
+    }
   });
 
   socket.on("disconnecting", () => {
@@ -131,14 +143,14 @@ io.on("connection", (socket) => {
 
     disconnect(roomCode, clientId, socket, io);
 
-    const room = getRoom(roomCode);
+    const room = getRoom(socket.data.roomCode);
 
     if (!room) {
       return;
     }
 
     if (room.roomMembers.length <= 0) {
-      io.in(roomCode).socketsLeave(roomCode);
+      io.in(roomCode).socketsLeave(socket.data.roomCode);
     }
   });
 

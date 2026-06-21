@@ -99,6 +99,12 @@ function Room() {
     });
 
     return () => {
+      socket.emit("leave-room", {
+        displayName: displayName,
+        roomCode: roomCode,
+        clientId: getClientId(),
+      });
+
       socket.off("initial-info");
       socket.off("timer-tick");
       socket.off("new-join");
@@ -108,7 +114,7 @@ function Room() {
       socket.off("room-ending");
       socket.off("new-pause-request");
     };
-  }, [roomCode, navigate]);
+  }, [roomCode, navigate, displayName]);
 
   return (
     <>

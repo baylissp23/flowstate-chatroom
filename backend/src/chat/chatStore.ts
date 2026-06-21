@@ -52,3 +52,13 @@ export function getChatHistory(roomCode : string) : ChatMessage[] | undefined {
   }
   return chatRoom;
 }
+
+export function deleteChatHistory(roomCode : string) {
+  const chatRoom = chatHistory.get(roomCode);
+
+  if (!chatRoom) {
+    return;
+  }
+
+  chatHistory.delete(roomCode);
+}
