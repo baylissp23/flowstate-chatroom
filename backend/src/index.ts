@@ -130,6 +130,16 @@ io.on("connection", (socket) => {
     const clientId = socket.data.clientId;
 
     disconnect(roomCode, clientId, socket, io);
+
+    const room = getRoom(roomCode);
+
+    if (!room) {
+      return;
+    }
+
+    if (room.roomMembers.length <= 0) {
+      io.in(roomCode).socketsLeave(roomCode);
+    }
   });
 
   socket.on("send-message", (message : MessagePayload) => {
