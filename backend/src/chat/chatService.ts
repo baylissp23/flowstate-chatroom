@@ -19,11 +19,6 @@ function validateRoomExists(roomCode : string) : boolean {
   return true;
 }
 
-function validateChatUnlocked() {
-    // implement when chat locks are finished
-    return;
-}
-
 function validateMessageText(message : MessagePayload) : boolean {
   const messageText = message.text;
   
