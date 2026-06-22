@@ -1,5 +1,4 @@
 import { describe, it, expect, afterEach, beforeEach, vi } from "vitest";
-import type { RoomState } from "../../shared/types.js";
 import { deleteRoom, forEachRoom, getRoom, setRoom } from "../src/room/roomStore.js";
 
 describe("getRoom & setRoom", () => {
