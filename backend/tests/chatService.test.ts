@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { handleChatMessage } from "../src/chat/chatService.js";
 import { addMessage, deleteChatHistory } from "../src/chat/chatStore.js";
-import { setRoom } from "../src/room/roomStore.js";
+import { setRoom, deleteRoom } from "../src/room/roomStore.js";
 import type { ChatMessage } from "../../shared/types.js";
 
 const time = new Date();
@@ -9,10 +9,12 @@ const time = new Date();
 describe("handleChatMessage", () => {
   beforeEach(async () => {
     await deleteChatHistory("SERVICE_ABCD");
+    await deleteRoom("SERVICE_ABCD");
   });
 
   afterEach(async () => {
     await deleteChatHistory("SERVICE_ABCD");
+    await deleteRoom("SERVICE_ABCD");
   });
 
   it("should return undefined when the specified room does not exist", async () => {

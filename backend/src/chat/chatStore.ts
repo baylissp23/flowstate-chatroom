@@ -1,8 +1,6 @@
 import type { ChatMessage } from "../../../shared/types.js";
 import { pubClient } from "../redisClient.js";
 
-let chatHistory: Map<string, ChatMessage[]> = new Map();
-
 const getRedisKey = (roomCode: string) => `room:${roomCode}:messages`;
 
 export async function getMessage(id: number, roomCode: string): Promise<ChatMessage | undefined> {

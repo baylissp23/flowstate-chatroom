@@ -1,21 +1,21 @@
 import { describe, it, expect, afterEach, beforeEach, vi } from "vitest";
 import { deleteRoom, forEachRoom, getRoom, setRoom } from "../src/room/roomStore.js";
+import { pubClient } from "../src/redisClient.js";
 
 describe("getRoom & setRoom", () => {
 
-  afterEach(() => {
-    deleteRoom("ABCD");
+  afterEach(async () => {
+    await deleteRoom("STORE_ABCD");
   });
 
-  it("should return undefined if room doesn't exist", () => {
-    const result = getRoom("FAKE");
-
+  it("should return undefined if room doesn't exist", async () => {
+    const result = await getRoom("STORE_FAKE");
     expect(result).toBeUndefined();
   });
 
-  it("should return the RoomState with passed roomCode if room exists", () => {
-    setRoom(
-      'ABCD',      
+  it("should return the RoomState with passed roomCode if room exists", async () => {
+    await setRoom(
+      'STORE_ABCD',      
       1500,         
       1500,         
       [],           
@@ -26,7 +26,7 @@ describe("getRoom & setRoom", () => {
       true          
     );
 
-    const result = getRoom("ABCD");
+    const result = await getRoom("STORE_ABCD");
 
     expect(result).toBeDefined();
     expect(result).toEqual({
@@ -39,15 +39,15 @@ describe("getRoom & setRoom", () => {
       phase: "focus",
       isPaused: true
     });
-
   });
 
 });
 
 describe("deleteRoom", () => {
-  beforeEach(() => {
-    setRoom(
-      'ABCD',      
+  beforeEach(async () => {
+    await deleteRoom("STORE_ABCD");
+    await setRoom(
+      'STORE_ABCD',      
       1500,         
       1500,         
       [],           
@@ -59,37 +59,46 @@ describe("deleteRoom", () => {
     );
   });
 
-  it("should delete room with corresponding roomCode", () => {
-    deleteRoom("ABCD");
+  afterEach(async () => {
+    await deleteRoom("STORE_ABCD");
+  });
 
-    const result = getRoom("ABCD");
+  it("should delete room with corresponding roomCode", async () => {
+    await deleteRoom("STORE_ABCD");
 
+    const result = await getRoom("STORE_ABCD");
     expect(result).toBeUndefined();
   });
 });
 
 describe("forEachRoom", () => {
-  afterEach(() => {
-    deleteRoom("ROOM_A");
-    deleteRoom("ROOM_B");
-  })
+  beforeEach(async () => {
+    await pubClient.del("active_rooms"); // Clear the registry so we start from 0 rooms
+    await deleteRoom("STORE_ROOM_A");
+    await deleteRoom("STORE_ROOM_B");
+  });
 
-  it("should execute callback for each room in the store", () => {
-    setRoom('ROOM_A', 1500, 1500, [], 'Host A', 300, 300, 'focus', true);
-    setRoom('ROOM_B', 1500, 1500, [], 'Host B', 300, 300, 'break', false);
+  afterEach(async () => {
+    await deleteRoom("STORE_ROOM_A");
+    await deleteRoom("STORE_ROOM_B");
+  });
+
+  it("should execute callback for each room in the store", async () => {
+    await setRoom('STORE_ROOM_A', 1500, 1500, [], 'Host A', 300, 300, 'focus', true);
+    await setRoom('STORE_ROOM_B', 1500, 1500, [], 'Host B', 300, 300, 'break', false);
 
     const testCallback = vi.fn();
 
-    forEachRoom(testCallback);
+    await forEachRoom(testCallback);
 
     expect(testCallback).toHaveBeenCalledTimes(2);
   });
 
-  it("should not execute the callback any times if no rooms in store", () => {
+  it("should not execute the callback any times if no rooms in store", async () => {
     const mockCallback = vi.fn();
 
-    forEachRoom(mockCallback);
+    await forEachRoom(mockCallback);
 
     expect(mockCallback).not.toHaveBeenCalled();
-  })
+  });
 });

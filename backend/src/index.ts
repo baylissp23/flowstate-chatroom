@@ -18,8 +18,8 @@ const io = new Server({
   adapter: createAdapter(pubClient, subClient)
 });
 
-setInterval(() => {
-  tickEach(io)
+setInterval(async () => {
+  await tickEach(io);
 }, 1000);
 
 io.on("connection", (socket) => {
@@ -34,7 +34,7 @@ io.on("connection", (socket) => {
     }
 
     // path if room is initially empty
-    const initialRoomState = emptyRoomPath(joinInfo, socket);
+    const initialRoomState = await emptyRoomPath(joinInfo, socket);
 
     if (initialRoomState) {
       socket.join(roomCode);
@@ -50,8 +50,8 @@ io.on("connection", (socket) => {
     // ---
 
     // path if socket is rejoining existing room
-    const roomData = getRoom(roomCode)!;
-    const rejoinedResult = rejoinRoomPath(roomData, roomCode, clientId);
+    const roomData = await getRoom(roomCode)!;
+    const rejoinedResult = rejoinRoomPath(roomData!, roomCode, clientId);
 
     if (rejoinedResult) {
       socket.join(roomCode);
@@ -67,7 +67,7 @@ io.on("connection", (socket) => {
     // ---
 
     // path that suffixes display name if taken, also emitting a new join
-    const duplicateNameResult = duplicateNamePath(roomData, clientId, roomCode, displayName);
+    const duplicateNameResult = await duplicateNamePath(roomData!, clientId, roomCode, displayName);
     socket.join(roomCode);
     socket.data.roomCode = roomCode;
     socket.data.clientId = clientId;
@@ -91,7 +91,7 @@ io.on("connection", (socket) => {
     io.to(newAdminData.roomCode).emit("new-admin-promotion", promoteResult.updatedRoomMembers);
   });
 
-  socket.on("pause-timer", (roomCode: string) => {
+  socket.on("pause-timer", async (roomCode: string) => {
     const canPause = canPauseTimer(socket.data.permission);
 
     if (!canPause) {
@@ -99,7 +99,7 @@ io.on("connection", (socket) => {
       return;
     }
 
-    const pauseResult = pauseTimer(roomCode);
+    const pauseResult = await pauseTimer(roomCode);
     if (pauseResult === "fail") {
       io.to(roomCode).emit("new-pause-request", { success: false });
       return;
@@ -121,14 +121,14 @@ io.on("connection", (socket) => {
 
     io.to(socket.data.roomCode).emit("room-ending", { success: true });
     io.in(socket.data.roomCode).socketsLeave(socket.data.roomCode);
-    endRoom(socket.data.roomCode);
+    await endRoom(socket.data.roomCode);
     await deleteChatHistory(socket.data.roomCode);
   });
 
   socket.on("leave-room", async (leaveInfo: JoinRoomPayload) => {
-    leaveRoom(leaveInfo, socket, io);
+    await leaveRoom(leaveInfo, socket, io);
 
-    const room = getRoom(socket.data.roomCode);
+    const room = await getRoom(socket.data.roomCode);
 
     if (!room) {
       return;
@@ -140,13 +140,13 @@ io.on("connection", (socket) => {
     }
   });
 
-  socket.on("disconnecting", () => {
+  socket.on("disconnecting", async () => {
     const roomCode = socket.data.roomCode;
     const clientId = socket.data.clientId;
 
     disconnect(roomCode, clientId, socket, io);
 
-    const room = getRoom(socket.data.roomCode);
+    const room = await getRoom(socket.data.roomCode);
 
     if (!room) {
       return;

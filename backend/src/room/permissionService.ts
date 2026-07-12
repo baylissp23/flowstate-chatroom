@@ -3,24 +3,24 @@ import type { AdminPromoteResult, Permission, RoomMember } from "../../../shared
 import { deleteRoom, getRoom, setRoom } from "./roomStore.js";
 import { setClientPermission, setRoomMemberPermission } from "./roomService.js";
 
-export async function tryAdminPromote(sourceSocket : Socket, targetClientId : string, roomCode : string, member : RoomMember, io : Server) : Promise<AdminPromoteResult | undefined> {
+export async function tryAdminPromote(sourceSocket: Socket, targetClientId: string, roomCode: string, member: RoomMember, io: Server): Promise<AdminPromoteResult | undefined> {
   if (!checkAllowedToPromote(sourceSocket)) {
     return;
   }
 
-  const newAdmin = checkNewAdminCanPromote(roomCode, member);
+  const newAdmin = await checkNewAdminCanPromote(roomCode, member);
 
   if (!newAdmin) {
     return;
   }
 
-  setRoomMemberPermission(roomCode, targetClientId, "admin");
+  await setRoomMemberPermission(roomCode, targetClientId, "admin");
   await setClientPermission(roomCode, targetClientId, "admin", io);
 
-  setRoomMemberPermission(roomCode, sourceSocket.data.clientId, "member");
+  await setRoomMemberPermission(roomCode, sourceSocket.data.clientId, "member");
   sourceSocket.data.permission = "member";
 
-  const updatedRoom = getRoom(roomCode);
+  const updatedRoom = await getRoom(roomCode);
   if (!updatedRoom) {
     return { success: false };
   }
@@ -31,15 +31,15 @@ export async function tryAdminPromote(sourceSocket : Socket, targetClientId : st
   };
 }
 
-function checkAllowedToPromote(socket : Socket) : boolean {
+function checkAllowedToPromote(socket: Socket): boolean {
   if (socket.data.permission === "admin") {
     return true;
   }
   return false;
 }
 
-function checkNewAdminCanPromote(roomCode : string, member : RoomMember) : boolean {
-  const room = getRoom(roomCode);
+async function checkNewAdminCanPromote(roomCode: string, member: RoomMember): Promise<boolean> {
+  const room = await getRoom(roomCode);
 
   if (!room) {
     return false;
@@ -48,7 +48,7 @@ function checkNewAdminCanPromote(roomCode : string, member : RoomMember) : boole
   const roomMembers = room.roomMembers;
 
   // check new admin is actually in the room
-  function roomMemberFilter(mem : RoomMember) {
+  function roomMemberFilter(mem: RoomMember) {
     return mem.clientId === member.clientId;
   }
 
@@ -66,22 +66,22 @@ function checkNewAdminCanPromote(roomCode : string, member : RoomMember) : boole
   }
 }
 
-export function canPauseTimer(socketPermission: Permission) : boolean {
+export function canPauseTimer(socketPermission: Permission): boolean {
   if (socketPermission === "admin") {
     return true;
   }
   return false;
 }
 
-export function pauseTimer(roomCode : string) : boolean | "fail" {
-  const room = getRoom(roomCode);
+export async function pauseTimer(roomCode: string): Promise<boolean | "fail"> {
+  const room = await getRoom(roomCode);
 
   if (!room) {
     return "fail";
   }
 
   if (room.isPaused === true) {
-    setRoom(
+    await setRoom(
       roomCode,
       room.current,
       room.max,
@@ -94,8 +94,8 @@ export function pauseTimer(roomCode : string) : boolean | "fail" {
     );
     return false;
   }
-  
-  setRoom(
+
+  await setRoom(
     roomCode,
     room.current,
     room.max,
@@ -109,19 +109,19 @@ export function pauseTimer(roomCode : string) : boolean | "fail" {
   return true;
 }
 
-export function canEndRoom(socketPermission : string) : boolean {
+export function canEndRoom(socketPermission: string): boolean {
   if (socketPermission === "admin") {
     return true;
   }
   return false;
 }
 
-export function endRoom(roomCode : string) {
-  const room = getRoom(roomCode);
+export async function endRoom(roomCode: string) {
+  const room = await getRoom(roomCode);
 
   if (!room) {
     return "fail";
   }
 
-  deleteRoom(roomCode);
+  await deleteRoom(roomCode);
 }

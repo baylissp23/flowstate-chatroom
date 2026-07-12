@@ -49,6 +49,7 @@ function Room() {
       setDisplayName(roomStateData.roomState.assignedDisplayName);
       setRoomMembers(roomStateData.roomState.roomMembers);
       setPermission(roomStateData.permission);
+      setTimerPaused(roomStateData.roomState.isPaused);
     });
 
     socket.on("timer-tick", (roomStateData) => {
@@ -100,7 +101,7 @@ function Room() {
 
     return () => {
       socket.emit("leave-room", {
-        displayName: displayName,
+        displayName: ogDisplayName.current,
         roomCode: roomCode,
         clientId: getClientId(),
       });
@@ -114,7 +115,7 @@ function Room() {
       socket.off("room-ending");
       socket.off("new-pause-request");
     };
-  }, [roomCode, navigate, displayName]);
+  }, [roomCode, navigate]);
 
   return (
     <>

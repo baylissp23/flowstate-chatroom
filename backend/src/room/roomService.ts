@@ -27,7 +27,7 @@ function getMemberIndex(roomMembers: RoomMember[], clientId: string) {
 }
 
 export async function removeAndBroadcast(roomCode: string, clientId: string, socket: Socket, io: Server) {
-  const roomData = getRoom(roomCode);
+  const roomData = await getRoom(roomCode);
   if (!roomData) {
     return;
   }
@@ -45,7 +45,7 @@ export async function removeAndBroadcast(roomCode: string, clientId: string, soc
   socket.leave(roomCode);
 
   if (updatedRoomMembers.length === 0) {
-    deleteRoom(roomCode);
+    await deleteRoom(roomCode);
     await deleteChatHistory(roomCode);
     return;
   }
@@ -56,7 +56,7 @@ export async function removeAndBroadcast(roomCode: string, clientId: string, soc
     assignedDisplayName: roomData.assignedDisplayName,
   };
 
-  setRoom(
+  await setRoom(
     roomCode,
     updatedRoomState.current,
     updatedRoomState.max,
@@ -70,14 +70,14 @@ export async function removeAndBroadcast(roomCode: string, clientId: string, soc
   io.to(roomCode).emit("member-left", updatedRoomMembers);
 }
 
-export function emptyRoomPath(joinInfo: JoinRoomPayload, socket: Socket): RoomState | undefined {
+export async function emptyRoomPath(joinInfo: JoinRoomPayload, socket: Socket): Promise<RoomState | undefined> {
   const { displayName, roomCode, clientId } = joinInfo;
 
   if (socket.rooms.has(roomCode)) {
-    return undefined;
+    return;
   }
 
-  const roomData = getRoom(roomCode);
+  const roomData = await getRoom(roomCode);
 
   if (!roomData) {
     const initialRoomState: RoomState = {
@@ -91,7 +91,7 @@ export function emptyRoomPath(joinInfo: JoinRoomPayload, socket: Socket): RoomSt
       isPaused: true,
     };
 
-    setRoom(
+    await setRoom(
       roomCode,
       initialRoomState.current,
       initialRoomState.max,
@@ -127,7 +127,7 @@ export function rejoinRoomPath(roomData: RoomState, roomCode: string, clientId: 
   return;
 }
 
-export function duplicateNamePath(roomData: RoomState, clientId: string, roomCode: string, displayName: string): DuplicateName {
+export async function duplicateNamePath(roomData: RoomState, clientId: string, roomCode: string, displayName: string): Promise<DuplicateName> {
   const assignedDisplayName = getUniqueDisplayName(roomData.roomMembers, displayName);
   const updatedRoomMembers: RoomMember[] = [
     ...roomData.roomMembers,
@@ -140,7 +140,7 @@ export function duplicateNamePath(roomData: RoomState, clientId: string, roomCod
     assignedDisplayName,
   };
 
-  setRoom(
+  await setRoom(
     roomCode,
     updatedRoomState.current,
     updatedRoomState.max,
@@ -197,8 +197,8 @@ export async function setClientPermission(
   targetSocket.data.permission = permission;
 }
 
-export function setRoomMemberPermission(roomCode: string, clientId: string, permission: Permission): boolean {
-  const room = getRoom(roomCode);
+export async function setRoomMemberPermission(roomCode: string, clientId: string, permission: Permission): Promise<boolean> {
+  const room = await getRoom(roomCode);
 
   if (!room) {
     return false;
@@ -210,7 +210,7 @@ export function setRoomMemberPermission(roomCode: string, clientId: string, perm
       : member,
   );
 
-  setRoom(
+  await setRoom(
     roomCode,
     room.current,
     room.max,
