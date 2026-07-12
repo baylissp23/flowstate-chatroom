@@ -82,6 +82,10 @@ io.on("connection", (socket) => {
   });
 
   socket.on("pass-admin", async (newAdminData: RoomMember) => {
+    if (socket.data.roomCode !== newAdminData.roomCode) {
+      return;
+    }
+
     const promoteResult = await tryAdminPromote(socket, newAdminData.clientId, newAdminData.roomCode, newAdminData, io);
 
     if (!promoteResult || promoteResult.success === false) {
@@ -92,6 +96,10 @@ io.on("connection", (socket) => {
   });
 
   socket.on("pause-timer", async (roomCode: string) => {
+    if (socket.data.roomCode !== roomCode) {
+      return;
+    }
+
     const canPause = canPauseTimer(socket.data.permission);
 
     if (!canPause) {
@@ -108,10 +116,19 @@ io.on("connection", (socket) => {
     io.to(roomCode).emit("new-pause-request", {
       success: true,
       isPaused: pauseResult,
-    })
+    });
+
+    const room = await getRoom(roomCode);
+    if (room) {
+      io.to(roomCode).emit("timer-tick", room);
+    }
   });
 
   socket.on("end-room", async (roomCode: string) => {
+    if (socket.data.roomCode !== roomCode) {
+      return;
+    }
+
     const canEnd = canEndRoom(socket.data.permission);
 
     if (!canEnd) {
@@ -126,6 +143,10 @@ io.on("connection", (socket) => {
   });
 
   socket.on("leave-room", async (leaveInfo: JoinRoomPayload) => {
+    if (socket.data.roomCode !== leaveInfo.roomCode) {
+      return;
+    }
+
     await leaveRoom(leaveInfo, socket, io);
 
     const room = await getRoom(socket.data.roomCode);

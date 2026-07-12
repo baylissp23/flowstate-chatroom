@@ -20,7 +20,8 @@ export async function getRoom(roomCode: string): Promise<RoomState | undefined> 
     breakCurrent: Number(data.breakCurrent),
     breakMax: Number(data.breakMax),
     phase: data.phase as Phase,
-    isPaused: data.isPaused === "true"
+    isPaused: data.isPaused === "true",
+    startTime: Number(data.startTime)
   }
 }
 
@@ -33,7 +34,8 @@ export async function setRoom(
   breakCurrent: number,
   breakMax: number,
   phase: Phase,
-  isPaused: boolean
+  isPaused: boolean,
+  startTime: number
 ): Promise<void> {
   const key = getRedisKey(roomCode);
 
@@ -46,7 +48,8 @@ export async function setRoom(
       breakCurrent: String(breakCurrent),
       breakMax: String(breakMax),
       phase: phase,
-      isPaused: String(isPaused)
+      isPaused: String(isPaused),
+      startTime: String(startTime)
     }),
     pubClient.sAdd(ACTIVE_ROOMS_KEY, roomCode)
   ])

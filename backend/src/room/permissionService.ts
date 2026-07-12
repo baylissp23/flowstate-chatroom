@@ -80,33 +80,35 @@ export async function pauseTimer(roomCode: string): Promise<boolean | "fail"> {
     return "fail";
   }
 
-  if (room.isPaused === true) {
-    await setRoom(
-      roomCode,
-      room.current,
-      room.max,
-      room.roomMembers,
-      room.assignedDisplayName,
-      room.breakCurrent,
-      room.breakMax,
-      room.phase,
-      false, // set isPaused to false in room state
-    );
-    return false;
+  const nextPauseState = !room.isPaused;
+  let nextCurrent = room.current;
+  let nextBreakCurrent = room.breakCurrent;
+  let nextStartTime = 0;
+
+  if (nextPauseState) {
+    const elapsed = Math.floor((Date.now() - room.startTime) / 1000);
+    if (room.phase === "focus") {
+      nextCurrent = Math.max(0, room.current - elapsed);
+    } else {
+      nextBreakCurrent = Math.max(0, room.breakCurrent - elapsed);
+    }
+  } else {
+    nextStartTime = Date.now();
   }
 
   await setRoom(
     roomCode,
-    room.current,
+    nextCurrent,
     room.max,
     room.roomMembers,
     room.assignedDisplayName,
-    room.breakCurrent,
+    nextBreakCurrent,
     room.breakMax,
     room.phase,
-    true, // set isPaused to true in room state
+    nextPauseState,
+    nextStartTime
   );
-  return true;
+  return nextPauseState;
 }
 
 export function canEndRoom(socketPermission: string): boolean {

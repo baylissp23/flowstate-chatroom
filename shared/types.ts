@@ -3,10 +3,10 @@ export type Permission =
   | "member"
 
 export interface RoomMember {
-  clientId : string;
-  displayName : string;
-  permission : Permission;
-  roomCode : string;
+  clientId: string;
+  displayName: string;
+  permission: Permission;
+  roomCode: string;
 }
 
 export type Phase =
@@ -14,20 +14,21 @@ export type Phase =
   | "break"
 
 export interface RoomState {
-  current : number;
-  max : number;
-  roomMembers : RoomMember[];
-  assignedDisplayName : string;
-  breakCurrent : number;
-  breakMax : number;
+  current: number;
+  max: number;
+  roomMembers: RoomMember[];
+  assignedDisplayName: string;
+  breakCurrent: number;
+  breakMax: number;
   phase: Phase;
   isPaused: boolean;
+  startTime: number;
 }
 
 export interface JoinRoomPayload {
-  displayName : string;
-  roomCode : string;
-  clientId : string;
+  displayName: string;
+  roomCode: string;
+  clientId: string;
 }
 
 export interface Rejoin {
@@ -43,14 +44,14 @@ export interface DuplicateName {
 }
 
 export interface ChatMessage {
-  id : number;
-  time : string | undefined;
-  text : string;
-  sender : string | undefined;
+  id: number;
+  time: string | undefined;
+  text: string;
+  sender: string | undefined;
 }
 
 export interface MessagePayload {
-  text : string;
+  text: string;
 }
 
 export type AdminPromoteResult =

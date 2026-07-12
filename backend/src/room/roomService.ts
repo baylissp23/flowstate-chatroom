@@ -66,6 +66,7 @@ export async function removeAndBroadcast(roomCode: string, clientId: string, soc
     updatedRoomState.breakMax,
     updatedRoomState.phase,
     updatedRoomState.isPaused,
+    roomData.startTime
   );
   io.to(roomCode).emit("member-left", updatedRoomMembers);
 }
@@ -89,6 +90,7 @@ export async function emptyRoomPath(joinInfo: JoinRoomPayload, socket: Socket): 
       breakMax: 300,
       phase: "focus",
       isPaused: true,
+      startTime: 0
     };
 
     await setRoom(
@@ -101,6 +103,7 @@ export async function emptyRoomPath(joinInfo: JoinRoomPayload, socket: Socket): 
       initialRoomState.breakMax,
       initialRoomState.phase,
       initialRoomState.isPaused,
+      initialRoomState.startTime
     );
     return initialRoomState;
   }
@@ -150,6 +153,7 @@ export async function duplicateNamePath(roomData: RoomState, clientId: string, r
     updatedRoomState.breakMax,
     updatedRoomState.phase,
     updatedRoomState.isPaused,
+    roomData.startTime
   );
 
   return {
@@ -169,11 +173,17 @@ export function disconnect(roomCode: string, clientId: string, socket: Socket, i
 
   const timeout = setTimeout(async () => {
     pendingDisconnects.delete(key);
+
+    const activeSockets = await io.in(roomCode).fetchSockets();
+    const hasRejoined = activeSockets.some((s) => s.data.clientId === clientId && s.id !== socket.id);
+    if (hasRejoined) {
+      return;
+    }
+
     await removeAndBroadcast(roomCode, clientId, socket, io);
   }, DISCONNECT_GRACE_MS);
 
   pendingDisconnects.set(key, timeout);
-
 }
 
 export async function leaveRoom(leaveInfo: JoinRoomPayload, socket: Socket, io: Server) {
@@ -220,6 +230,7 @@ export async function setRoomMemberPermission(roomCode: string, clientId: string
     room.breakMax,
     room.phase,
     room.isPaused,
+    room.startTime
   );
 
   return true;

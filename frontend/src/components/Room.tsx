@@ -34,6 +34,10 @@ function Room() {
   const [chatPhase, setChatPhase] = useState<Phase>("focus");
   const [permission, setPermission] = useState<Permission>("member");
 
+  const startTimeRef = useRef<number>(0);
+  const currentRef = useRef<number>(0);
+  const breakCurrentRef = useRef<number>(0);
+
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -45,17 +49,28 @@ function Room() {
     });
 
     socket.on("initial-info", (roomStateData) => {
+      startTimeRef.current = roomStateData.roomState.startTime;
+      currentRef.current = roomStateData.roomState.current;
+      breakCurrentRef.current = roomStateData.roomState.breakCurrent;
+
       setTimer(roomStateData.roomState.current);
+      setBreakTimer(roomStateData.roomState.breakCurrent);
       setDisplayName(roomStateData.roomState.assignedDisplayName);
       setRoomMembers(roomStateData.roomState.roomMembers);
       setPermission(roomStateData.permission);
       setTimerPaused(roomStateData.roomState.isPaused);
+      setChatPhase(roomStateData.roomState.phase);
     });
 
     socket.on("timer-tick", (roomStateData) => {
+      startTimeRef.current = roomStateData.startTime;
+      currentRef.current = roomStateData.current;
+      breakCurrentRef.current = roomStateData.breakCurrent;
+
       setTimer(roomStateData.current);
       setBreakTimer(roomStateData.breakCurrent);
       setChatPhase(roomStateData.phase);
+      setTimerPaused(roomStateData.isPaused);
     });
 
     socket.on("new-admin-promotion", (newRoomMembers) => {
@@ -116,6 +131,27 @@ function Room() {
       socket.off("new-pause-request");
     };
   }, [roomCode, navigate]);
+
+  useEffect(() => {
+    if (timerPaused) {
+      return;
+    }
+
+    const updateLocalTimers = () => {
+      const elapsed = Math.floor((Date.now() - startTimeRef.current) / 1000);
+      if (chatPhase === "focus") {
+        setTimer(Math.max(0, currentRef.current - elapsed));
+        setBreakTimer(breakCurrentRef.current);
+      } else {
+        setBreakTimer(Math.max(0, breakCurrentRef.current - elapsed));
+        setTimer(currentRef.current);
+      }
+    };
+
+    updateLocalTimers();
+    const interval = setInterval(updateLocalTimers, 1000);
+    return () => clearInterval(interval);
+  }, [timerPaused, chatPhase]);
 
   return (
     <>

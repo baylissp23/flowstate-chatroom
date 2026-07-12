@@ -42,7 +42,7 @@ describe("handleChatMessage", () => {
   });
 
   it("should return the ChatMessage being handled if validation of message passes", async () => {
-    setRoom("SERVICE_ABCD", 1500, 1500, [], "test", 300, 300, "focus", false);
+    await setRoom("SERVICE_ABCD", 1500, 1500, [], "test", 300, 300, "focus", false, 0);
     await addMessage(time, "example message 1", "example sender 1", "SERVICE_ABCD");
     await addMessage(time, "example message 2", "example sender 2", "SERVICE_ABCD");
 

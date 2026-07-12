@@ -23,7 +23,8 @@ describe("getRoom & setRoom", () => {
       300,          
       300,          
       'focus',      
-      true          
+      true,
+      0
     );
 
     const result = await getRoom("STORE_ABCD");
@@ -37,7 +38,8 @@ describe("getRoom & setRoom", () => {
       breakCurrent: 300,
       breakMax: 300,
       phase: "focus",
-      isPaused: true
+      isPaused: true,
+      startTime: 0
     });
   });
 
@@ -55,7 +57,8 @@ describe("deleteRoom", () => {
       300,          
       300,          
       'focus',      
-      true          
+      true,
+      0
     );
   });
 
@@ -84,8 +87,8 @@ describe("forEachRoom", () => {
   });
 
   it("should execute callback for each room in the store", async () => {
-    await setRoom('STORE_ROOM_A', 1500, 1500, [], 'Host A', 300, 300, 'focus', true);
-    await setRoom('STORE_ROOM_B', 1500, 1500, [], 'Host B', 300, 300, 'break', false);
+    await setRoom('STORE_ROOM_A', 1500, 1500, [], 'Host A', 300, 300, 'focus', true, 0);
+    await setRoom('STORE_ROOM_B', 1500, 1500, [], 'Host B', 300, 300, 'break', false, 0);
 
     const testCallback = vi.fn();
 
