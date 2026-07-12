@@ -11,7 +11,25 @@ FlowState is a collaborative work-sessions platform that I am currently building
 
 ## Devlog
 
-### V7 - UI Rework and Bug Hunting
+### V8 - Redis Migration
+
+Over the past week (but mostly this evening) I have been iteratively working on converting in-memory room states to a persistent Redis store to support scaling the application when it comes to deployment. This will allow me to run multiple server instances behind a load balancer, with each of these servers sharing the Redis store.
+
+I also integrated the `socket.io` Redis adapter to distribute traffic across multiple server instances so the app is ready for scaling, and made sure all timer logic is completely stateless (other than reload grace periods for now).
+
+Through using Google Gemini to conduct a security check over my code, I found there was a severe vulnerability in room admin actions. The vulnerability meant that an admin of Room A could spoof themselves as an admin of Room B and successfully carry out admin actions in Room B. I closed this vulnerability by verifying room codes sent by the client are checked to match the socket's authenticated room context.
+
+**TLDR:**
+- Migrated in-memory room metadata and chat logs to Redis Hashes and Lists.
+- Added `@socket.io/redis-adapter` to support future multi-server load balancing.
+- Shifted the timer from a database-ticking interval to a stateless client-side calculation using `startTime` timestamps.
+- Secured socket actions against administrative cross-room spoofing.
+
+### History
+
+<details>
+
+<summary><b>V7 - UI Rework and Bug Hunting</b></summary>
 
 Today I did some work on making FlowState feel more like a collaborative productivity platform. While I was originally planning on using `tailwindcss` with the `shadcn` components library to do this, I decided to just fiddle around with Bootstrap a little bit. The UI now has a nice dark mode feel with blue accents. I used AI models quite a bit to help me through creating complicated CSS, like text gradients, breathing borders, and the floating pill navbar, since I have little knowledge of creating custom styles. There is still some work to do (especially with keeping the app responsive on smaller screens), but overall, the app looks a lot nicer and much more cohesive!
 
@@ -29,7 +47,7 @@ There are probably more bugs I have missed, and I will be hunting for more while
 - Found new bugs that need to be fixed
 - Continually working on finding other bugs in the application, staying vigilant!
 
-### History
+</details>
 
 <details>
 
