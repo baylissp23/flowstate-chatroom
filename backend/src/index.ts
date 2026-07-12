@@ -7,12 +7,15 @@ import { handleChatMessage } from "./chat/chatService.js";
 import { broadcastMessage } from "./chat/chatEvents.js";
 import { deleteChatHistory, getChatHistory } from "./chat/chatStore.js";
 import { canEndRoom, canPauseTimer, endRoom, pauseTimer, tryAdminPromote } from "./room/permissionService.js";
+import { pubClient, subClient } from "./redisClient.js";
+import { createAdapter } from "@socket.io/redis-adapter";
 
 const io = new Server({
   cors: {
     origin: "http://localhost:5173",
     methods: ["GET", "POST"],
   },
+  adapter: createAdapter(pubClient, subClient)
 });
 
 setInterval(() => {
@@ -22,7 +25,7 @@ setInterval(() => {
 io.on("connection", (socket) => {
   console.log("Connection with client established: ", socket.id);
 
-  socket.on("join-room", (joinInfo: JoinRoomPayload) => {
+  socket.on("join-room", async (joinInfo: JoinRoomPayload) => {
     const { displayName, roomCode, clientId } = joinInfo;
 
     // if socket is already in room, stop StrictMode from rejoining for no reason
@@ -40,7 +43,7 @@ io.on("connection", (socket) => {
       socket.data.displayName = displayName;
       socket.data.permission = "admin";
       io.to(socket.id).emit("initial-info", { roomState: initialRoomState, permission: socket.data.permission });
-      io.to(socket.id).emit("initial-messages", getChatHistory(roomCode));
+      io.to(socket.id).emit("initial-messages", await getChatHistory(roomCode));
       console.log(`${displayName} joined an empty room`)
       return;
     }
@@ -57,12 +60,12 @@ io.on("connection", (socket) => {
       socket.data.displayName = rejoinedResult.displayName;
       socket.data.permission = rejoinedResult.permission;
       io.to(socket.id).emit("initial-info", { roomState: rejoinedResult.roomState, permission: socket.data.permission });
-      io.to(socket.id).emit("initial-messages", getChatHistory(roomCode));
+      io.to(socket.id).emit("initial-messages", await getChatHistory(roomCode));
       console.log(`${displayName} rejoined a room`)
       return;
     }
     // ---
-    
+
     // path that suffixes display name if taken, also emitting a new join
     const duplicateNameResult = duplicateNamePath(roomData, clientId, roomCode, displayName);
     socket.join(roomCode);
@@ -71,16 +74,16 @@ io.on("connection", (socket) => {
     socket.data.displayName = duplicateNameResult.assignedDisplayName;
     socket.data.permission = "member";
     io.to(roomCode).emit("new-join", duplicateNameResult.updatedRoomMembers);
-    io.to(socket.id).emit("initial-messages", getChatHistory(roomCode));
+    io.to(socket.id).emit("initial-messages", await getChatHistory(roomCode));
     io.to(socket.id).emit("initial-info", { roomState: duplicateNameResult.updatedRoomState, permission: socket.data.permission });
     console.log(`${socket.data.displayName} joined a room with suffix name`)
     return;
     // ---
   });
 
-  socket.on("pass-admin", async (newAdminData : RoomMember) => {
+  socket.on("pass-admin", async (newAdminData: RoomMember) => {
     const promoteResult = await tryAdminPromote(socket, newAdminData.clientId, newAdminData.roomCode, newAdminData, io);
-    
+
     if (!promoteResult || promoteResult.success === false) {
       return;
     }
@@ -88,7 +91,7 @@ io.on("connection", (socket) => {
     io.to(newAdminData.roomCode).emit("new-admin-promotion", promoteResult.updatedRoomMembers);
   });
 
-  socket.on("pause-timer", (roomCode : string) => {
+  socket.on("pause-timer", (roomCode: string) => {
     const canPause = canPauseTimer(socket.data.permission);
 
     if (!canPause) {
@@ -108,7 +111,7 @@ io.on("connection", (socket) => {
     })
   });
 
-  socket.on("end-room", (roomCode : string) => {
+  socket.on("end-room", async (roomCode: string) => {
     const canEnd = canEndRoom(socket.data.permission);
 
     if (!canEnd) {
@@ -119,10 +122,10 @@ io.on("connection", (socket) => {
     io.to(socket.data.roomCode).emit("room-ending", { success: true });
     io.in(socket.data.roomCode).socketsLeave(socket.data.roomCode);
     endRoom(socket.data.roomCode);
-    deleteChatHistory(socket.data.roomCode);
+    await deleteChatHistory(socket.data.roomCode);
   });
 
-  socket.on("leave-room", (leaveInfo: JoinRoomPayload) => {
+  socket.on("leave-room", async (leaveInfo: JoinRoomPayload) => {
     leaveRoom(leaveInfo, socket, io);
 
     const room = getRoom(socket.data.roomCode);
@@ -133,7 +136,7 @@ io.on("connection", (socket) => {
 
     if (room.roomMembers.length <= 0) {
       io.in(socket.data.roomCode).socketsLeave(socket.data.roomCode);
-      deleteChatHistory(socket.data.roomCode);
+      await deleteChatHistory(socket.data.roomCode);
     }
   });
 
@@ -154,13 +157,13 @@ io.on("connection", (socket) => {
     }
   });
 
-  socket.on("send-message", (message : MessagePayload) => {
+  socket.on("send-message", async (message: MessagePayload) => {
     if (!socket.data.roomCode) {
       io.to(socket.id).emit("message-not-sent", "message not sent: socket is not in a room");
       return;
     }
 
-    const chatMessage : ChatMessage | undefined = handleChatMessage(message, socket.data.roomCode, socket.data.displayName);
+    const chatMessage = await handleChatMessage(message, socket.data.roomCode, socket.data.displayName);
 
     if (chatMessage) {
       broadcastMessage(io, socket.data.roomCode, chatMessage)

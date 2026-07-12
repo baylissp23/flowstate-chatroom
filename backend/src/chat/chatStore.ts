@@ -1,64 +1,49 @@
 import type { ChatMessage } from "../../../shared/types.js";
+import { pubClient } from "../redisClient.js";
 
-let chatHistory : Map<string, ChatMessage[]> = new Map();
+let chatHistory: Map<string, ChatMessage[]> = new Map();
 
-export function getMessage(id : number, roomCode : string) : ChatMessage | undefined {
-  const chatRoom = chatHistory.get(roomCode);
-  if (!chatRoom) {
+const getRedisKey = (roomCode: string) => `room:${roomCode}:messages`;
+
+export async function getMessage(id: number, roomCode: string): Promise<ChatMessage | undefined> {
+  const history = await getChatHistory(roomCode);
+  if (!history) {
     return;
   }
 
-  if (chatRoom.length === 0) {
-    return;
-  }
-
-  for (let i = 0; i < chatRoom.length; i++) {
-    const currentMessage = chatRoom[i]!
-    if (currentMessage.id === id) {
-      return currentMessage
-    }
-  }
-
-  return;
+  return history.find((msg) => msg.id === id);
 }
 
-export function addMessage(time : Date, text : string, sender: string, roomCode : string) : ChatMessage {
+export async function addMessage(time: Date, text: string, sender: string, roomCode: string): Promise<ChatMessage> {
+  const key = getRedisKey(roomCode);
   const formattedTime = time.toTimeString();
-  let chatRoom = chatHistory.get(roomCode);
 
-  if (!chatRoom) {
-    chatRoom = [];
-  }
+  const id = await pubClient.lLen(key);
 
-  const id = chatRoom.length; // based on ChatMessage array chronological order
-
-  const message = {
+  const message: ChatMessage = {
     id: id,
     time: formattedTime,
     text: text,
     sender: sender
   }
 
-  chatRoom.push(message);
-
-  chatHistory.set(roomCode, chatRoom);
+  await pubClient.rPush(key, JSON.stringify(message));
   return message;
 }
 
-export function getChatHistory(roomCode : string) : ChatMessage[] | undefined {
-  const chatRoom = chatHistory.get(roomCode);
-  if (!chatRoom) {
+export async function getChatHistory(roomCode: string): Promise<ChatMessage[] | undefined> {
+  const key = getRedisKey(roomCode);
+
+  const exists = await pubClient.exists(key);
+  if (exists === 0) {
     return;
   }
-  return chatRoom;
+
+  const rawMessages = await pubClient.lRange(key, 0, -1);
+  return rawMessages.map((msg) => JSON.parse(msg));
 }
 
-export function deleteChatHistory(roomCode : string) {
-  const chatRoom = chatHistory.get(roomCode);
-
-  if (!chatRoom) {
-    return;
-  }
-
-  chatHistory.delete(roomCode);
+export async function deleteChatHistory(roomCode: string): Promise<void> {
+  const key = getRedisKey(roomCode);
+  await pubClient.del(key);
 }

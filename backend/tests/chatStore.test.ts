@@ -5,42 +5,48 @@ const time = new Date();
 
 describe("getMessage", () => {
 
-  beforeEach(() => {
-    addMessage(time, "message example 1", "example sender 1", "ABCD")
+  beforeEach(async () => {
+    await deleteChatHistory("STORE_ABCD");
+    await addMessage(time, "message example 1", "example sender 1", "STORE_ABCD");
   });
 
-  afterEach(() => {
-    deleteChatHistory("ABCD");
+  afterEach(async () => {
+    await deleteChatHistory("STORE_ABCD");
   });
 
-  it("should return undefined if the chat room doesn't exist for the specified room code", () => {
-    const result = getMessage(0, "EFGH");
+  it("should return undefined if the chat room doesn't exist for the specified room code", async () => {
+    const result = await getMessage(0, "STORE_EFGH");
 
     expect(result).toBeUndefined();
   });
   
-  it("should return the message at the corresponding ID number and room code given if existing", () => {
-    const result = getMessage(0, "ABCD");
+  it("should return the message at the corresponding ID number and room code given if existing", async () => {
+    const result = await getMessage(0, "STORE_ABCD");
 
     expect(result).toEqual({
       id: 0,
       time: time.toTimeString(),
       text: "message example 1",
       sender: "example sender 1",
-    })
-  })
+    });
+  });
 });
 
 describe("addMessage", () => {
-  afterEach(() => {
-    deleteChatHistory("ABCD");
-    deleteChatHistory("ABCDEF");
+  beforeEach(async () => {
+    await deleteChatHistory("STORE_ABCD");
+    await deleteChatHistory("STORE_ABCDEF");
   });
 
-  it("should initialise room array if no corresponding chat room for room code and add the message", () => {
-    addMessage(time, "example message 1", "example sender 1", "ABCD");
+  afterEach(async () => {
+    await deleteChatHistory("STORE_ABCD");
+    await deleteChatHistory("STORE_ABCDEF");
+  });
 
-    const result = getMessage(0, "ABCD");
+  it("should initialise room array if no corresponding chat room for room code and add the message", async () => {
+    await addMessage(time, "example message 1", "example sender 1", "STORE_ABCD");
+
+    const result = await getMessage(0, "STORE_ABCD");
 
     expect(result).toEqual({
       id: 0,
@@ -50,8 +56,8 @@ describe("addMessage", () => {
     });
   });
 
-  it("should return the message being added to the chat store", () => {
-    const result = addMessage(time, "example message 1", "example sender 1", "ABCD");
+  it("should return the message being added to the chat store", async () => {
+    const result = await addMessage(time, "example message 1", "example sender 1", "STORE_ABCD");
 
     expect(result).toEqual({
       id: 0,
@@ -61,13 +67,13 @@ describe("addMessage", () => {
     });
   });
 
-  it("should be able to add multiple messages to multiple chat rooms", () => {
-    addMessage(time, "example message 1", "example sender 1", "ABCD");
-    addMessage(time, "example message 2", "example sender 2", "ABCD");
-    addMessage(time, "example message 3", "example sender 3", "ABCDEF");
+  it("should be able to add multiple messages to multiple chat rooms", async () => {
+    await addMessage(time, "example message 1", "example sender 1", "STORE_ABCD");
+    await addMessage(time, "example message 2", "example sender 2", "STORE_ABCD");
+    await addMessage(time, "example message 3", "example sender 3", "STORE_ABCDEF");
 
-    const result1 = getChatHistory("ABCD");
-    const result2 = getChatHistory("ABCDEF");
+    const result1 = await getChatHistory("STORE_ABCD");
+    const result2 = await getChatHistory("STORE_ABCDEF");
 
     expect(result1).toEqual([
       {
@@ -91,23 +97,31 @@ describe("addMessage", () => {
         text: "example message 3",
         sender: "example sender 3",
       },
-    ])
+    ]);
   });
 
 });
 
 describe("getChatHistory", () => {
-  it("should return undefined if a chat room doesn't exist for given room code", () => {
-    const result = getChatHistory("FAKE_ROOM");
+  beforeEach(async () => {
+    await deleteChatHistory("STORE_ABCD");
+  });
+
+  afterEach(async () => {
+    await deleteChatHistory("STORE_ABCD");
+  });
+
+  it("should return undefined if a chat room doesn't exist for given room code", async () => {
+    const result = await getChatHistory("STORE_FAKE_ROOM");
 
     expect(result).toBeUndefined();
   });
 
-  it("should return an array of chat messages with the added messages if chat room exists for given room code", () => {
-    addMessage(time, "example message 1", "example sender 1", "ABCD");
-    addMessage(time, "example message 2", "example sender 2", "ABCD");
+  it("should return an array of chat messages with the added messages if chat room exists for given room code", async () => {
+    await addMessage(time, "example message 1", "example sender 1", "STORE_ABCD");
+    await addMessage(time, "example message 2", "example sender 2", "STORE_ABCD");
 
-    const result = getChatHistory("ABCD");
+    const result = await getChatHistory("STORE_ABCD");
 
     expect(result).toEqual([
       {
@@ -128,20 +142,28 @@ describe("getChatHistory", () => {
 });
 
 describe("deleteChatHistory", () => {
-  it("should return undefined if a chat room doesn't exist for a given room code", () => {
-    const result = deleteChatHistory("FAKE_ROOM");
+  beforeEach(async () => {
+    await deleteChatHistory("STORE_ABCD");
+  });
+
+  afterEach(async () => {
+    await deleteChatHistory("STORE_ABCD");
+  });
+
+  it("should return undefined if a chat room doesn't exist for a given room code", async () => {
+    const result = await deleteChatHistory("STORE_FAKE_ROOM");
 
     expect(result).toBeUndefined();
-  })
+  });
 
-  it("should delete entire key value pair inside the chat history for given room code if it exists", () => {
-    addMessage(time, "example message 1", "example sender 1", "ABCD");
-    addMessage(time, "example message 2", "example sender 2", "ABCD");
+  it("should delete entire key value pair inside the chat history for given room code if it exists", async () => {
+    await addMessage(time, "example message 1", "example sender 1", "STORE_ABCD");
+    await addMessage(time, "example message 2", "example sender 2", "STORE_ABCD");
 
-    deleteChatHistory("ABCD");
+    await deleteChatHistory("STORE_ABCD");
 
-    const result = getChatHistory("ABCD");
+    const result = await getChatHistory("STORE_ABCD");
 
     expect(result).toBeUndefined();
-  })
-})
+  });
+});
