@@ -68,3 +68,21 @@ Allowing users to declare their goals for the session, enhancing social accounta
 *   Store task lists in a Redis Hash keyed by `roomCode:tasks:clientId`.
 *   Emit Socket.io events (`add-task`, `toggle-task`, `delete-task`) to update list states.
 *   Ensure cleanup logic deletes the task hash when a room is destroyed or empty.
+
+---
+
+## 5. User Accounts, Authentication & Persistent Stats (Idea #5)
+
+### Description
+Introduce persistent user accounts and authentication to allow users to save their session history, track individual focus stats over time, and build long-term gamified milestones.
+
+### Core Mechanics
+*   **Sign Up / Login**: Standard email/password or OAuth registration to identify returning users.
+*   **User Dashboard**: A profile area showing individual lifetime focus hours, work streaks (daily/weekly), and completed task histories.
+*   **Persistent Badges & Customization**: Unlocked visual theme modifiers or unique avatar borders that carry over from session to session.
+*   **Leaderboards**: Daily or weekly leaderboards for the most focused users.
+
+### Architectural Considerations
+*   Requires a persistent transactional database (e.g., PostgreSQL or MongoDB) for user models and historical stats, keeping Redis dedicated to transient real-time state.
+*   A new authentication layer utilizing JWTs. Passwords must be securely hashed (e.g., using `bcrypt`).
+*   Socket.io handshake middleware to validate the JWT, binding authenticated user IDs directly to socket sessions instead of generic client IDs.
