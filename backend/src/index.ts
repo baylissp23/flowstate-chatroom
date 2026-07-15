@@ -9,8 +9,23 @@ import { deleteChatHistory, getChatHistory } from "./chat/chatStore.js";
 import { canEndRoom, canPauseTimer, endRoom, pauseTimer, tryAdminPromote } from "./room/permissionService.js";
 import { pubClient, subClient } from "./redisClient.js";
 import { createAdapter } from "@socket.io/redis-adapter";
+import express from "express";
+import { createServer } from "http";
+import { authenticateSocket } from "./middleware/authMiddleware.js";
+import cors from "cors";
 
-const io = new Server({
+const app = express();
+
+app.use(express.json());
+app.use(cors({
+  origin: "http://localhost:5173",
+  methods: ["GET", "POST"],
+  credentials: true
+}));
+
+const httpServer = createServer(app);
+
+const io = new Server(httpServer, {
   cors: {
     origin: "http://localhost:5173",
     methods: ["GET", "POST"],
@@ -21,6 +36,8 @@ const io = new Server({
 setInterval(async () => {
   await tickEach(io);
 }, 1000);
+
+io.use(authenticateSocket);
 
 io.on("connection", (socket) => {
   console.log("Connection with client established: ", socket.id);
@@ -194,4 +211,4 @@ io.on("connection", (socket) => {
   });
 });
 
-io.listen(3000);
+httpServer.listen(3000, () => { console.log("HTTP server running on port 3000") });
