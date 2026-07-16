@@ -29,6 +29,14 @@ function Navigation() {
               Help
             </Nav.Link>
           </Nav>
+          <Nav className="ms-auto me-2">
+            <Nav.Link as={Link} to="/signup">
+              Sign Up
+            </Nav.Link>
+            <Nav.Link as={Link} to="/login">
+              Log In
+            </Nav.Link>
+          </Nav>
         </Navbar.Collapse>
       </Container>
     </Navbar>
