@@ -4,9 +4,12 @@ import Button from "react-bootstrap/Button";
 import { useNavigate, Link } from "react-router-dom";
 import { useState } from "react";
 import { BoxArrowInRight } from "react-bootstrap-icons";
+import { useAuthStore } from "@/store/useAuthStore";
 
 function Join() {
-  const [displayName, setDisplayName] = useState("");
+  const { user } = useAuthStore();
+
+  const [displayName, setDisplayName] = useState(user?.user_metadata?.display_name || "");
   const [roomCode, setRoomCode] = useState("");
   const navigate = useNavigate();
 
@@ -45,9 +48,11 @@ function Join() {
                 display name
               </Form.Label>
               <Form.Control
+                key={user?.id || "guest"}
                 type="text"
                 placeholder="Enter display name..."
                 name="displayName"
+                value={displayName}
                 onChange={(e) => {
                   setDisplayName(e.target.value);
                 }}
