@@ -5,7 +5,7 @@ import Card from "react-bootstrap/Card";
 import Form from "react-bootstrap/Form";
 import Alert from "react-bootstrap/Alert";
 import Button from "react-bootstrap/Button";
-import { Shield, ShieldLock } from "react-bootstrap-icons";
+import { ShieldLock } from "react-bootstrap-icons";
 
 function Login() {
   const [email, setEmail] = useState("");

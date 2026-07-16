@@ -3,8 +3,18 @@ import Nav from "react-bootstrap/Nav";
 import Container from "react-bootstrap/Container";
 import { NavLink, Link } from "react-router-dom";
 import { Infinity as InfinityIcon } from "react-bootstrap-icons";
+import { useAuthStore } from "@/store/useAuthStore";
+import { useNavigate } from "react-router-dom";
 
 function Navigation() {
+  const { user, isLoading, logout } = useAuthStore();
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    await logout();
+    navigate("/");
+  }
+
   return (
     <Navbar expand="lg" className="bg-dark navbar-pill navbar-pulse">
       <Container fluid>
@@ -30,12 +40,23 @@ function Navigation() {
             </Nav.Link>
           </Nav>
           <Nav className="ms-auto me-2">
-            <Nav.Link as={Link} to="/signup">
-              Sign Up
-            </Nav.Link>
-            <Nav.Link as={Link} to="/login">
-              Log In
-            </Nav.Link>
+            {isLoading ? null :
+              user ? <>
+                <Nav.Link as={Link} to="/profile">
+                  Profile
+                </Nav.Link>
+                <Nav.Link onClick={handleLogout} style={{ cursor: "pointer" }}>
+                  Log Out
+                </Nav.Link>
+              </> : <>
+                  <Nav.Link as={Link} to="/signup">
+                    Sign Up
+                  </Nav.Link>
+                  <Nav.Link as={Link} to="/login">
+                    Log In
+                  </Nav.Link>
+              </>
+            }
           </Nav>
         </Navbar.Collapse>
       </Container>
