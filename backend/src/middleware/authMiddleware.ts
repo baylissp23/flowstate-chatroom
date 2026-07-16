@@ -33,7 +33,11 @@ export function authenticateSocket(socket: Socket, next: (err?: any) => void) {
     return;
   }
 
-  jwt.verify(token, getKey, { algorithms: ["ES256"] }, (err, decoded) => {
+  jwt.verify(token, getKey, {
+    algorithms: ["ES256"],
+    audience: "authenticated",
+    issuer: `${supabaseUrl}/auth/v1`
+  }, (err, decoded) => {
     if (err) {
       next(err);
       return;
